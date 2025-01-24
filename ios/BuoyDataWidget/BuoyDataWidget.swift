@@ -23,20 +23,18 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [SimpleEntry] = []
-        let currentDate = Date()
-
-        // Fetch the data for the widget (wave height in this case)
+        // Fetch the data for the widget (wave height, swell period, swell direction)
         Task {
             let (waveHeight, swellPeriod, swellDirection) = await fetchBuoyData()
 
-            for hourOffset in 0..<24 {
-                let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-                let entry = SimpleEntry(date: entryDate, waveHeight: waveHeight, swellPeriod: swellPeriod, swellDirection: swellDirection)
-                entries.append(entry)
-            }
+            // Create a single entry for the current time
+            let currentDate = Date()
+            let entry = SimpleEntry(date: currentDate, waveHeight: waveHeight, swellPeriod: swellPeriod, swellDirection: swellDirection)
 
-            let timeline = Timeline(entries: entries, policy: .atEnd)
+            // Set the refresh policy to update hourly
+            let refreshDate = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate)!
+            let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
+
             completion(timeline)
         }
     }
@@ -105,9 +103,27 @@ struct BuoyDataWidgetEntryView : View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Height: \(entry.waveHeight)")
-            Text("Period: \(entry.swellPeriod) s")
-            Text("Direction: \(entry.swellDirection)")
+            Text("Buoy 44065")
+                .font(.footnote)
+                .underline()
+            HStack {
+                Image(systemName: "arrowshape.up")
+                    .imageScale(.small)
+                Text(entry.waveHeight)
+                    .font(.footnote)
+            }
+            HStack {
+                Image(systemName: "hourglass")
+                    .imageScale(.small)
+                Text("\(entry.swellPeriod) s")
+                    .font(.footnote)
+            }
+            HStack {
+                Image(systemName: "safari")
+                    .imageScale(.small)
+                Text(entry.swellDirection)
+                    .font(.footnote)
+            }
         }
     }
 }
