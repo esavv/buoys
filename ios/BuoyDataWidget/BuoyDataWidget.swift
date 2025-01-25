@@ -32,7 +32,7 @@ struct Provider: TimelineProvider {
             let entry = SimpleEntry(date: currentDate, waveHeight: waveHeight, swellPeriod: swellPeriod, swellDirection: swellDirection)
 
             // Set the refresh policy to update hourly
-            let refreshDate = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate)!
+            let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: currentDate)!
             let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
 
             completion(timeline)
@@ -74,7 +74,7 @@ struct Provider: TimelineProvider {
             var waveHeight = "N/A"
             if let waveHeightMeters = Double(latestData[waveHeightIndex]) {
                 let waveHeightFeet = waveHeightMeters * 3.28084
-                waveHeight = String(format: "%.1f ft", waveHeightFeet) // Format to 1 decimal place
+                waveHeight = String(format: "%.1f", waveHeightFeet) // Format to 1 decimal place
             } else {
                 return ("Error: Invalid wave height data", "N/A", "N/A")
             }
@@ -102,27 +102,21 @@ struct BuoyDataWidgetEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Buoy 44065")
-                .font(.footnote)
-                .underline()
+        VStack(alignment: .center, spacing: -1) {
+            Text("44065")
+                .font(.system(size: 8))
             HStack {
-                Image(systemName: "arrowshape.up")
-                    .imageScale(.small)
-                Text(entry.waveHeight)
-                    .font(.footnote)
+                Text("\(entry.waveHeight) ft")
+                    .font(.system(size: 15))
             }
             HStack {
-                Image(systemName: "hourglass")
-                    .imageScale(.small)
                 Text("\(entry.swellPeriod) s")
-                    .font(.footnote)
+                    .font(.system(size: 15))
             }
             HStack {
-                Image(systemName: "safari")
-                    .imageScale(.small)
                 Text(entry.swellDirection)
-                    .font(.footnote)
+                    .font(.system(size: 15))
+//                    .font(.footnote)
             }
         }
     }
@@ -142,13 +136,13 @@ struct BuoyDataWidget: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
-        .supportedFamilies([.accessoryRectangular]) // Ensure only lock screen widget type
+        .configurationDisplayName("BuoyDataWidget")
+        .description("Display live swell data from your favorite buoy.")
+        .supportedFamilies([.accessoryCircular]) // Ensure only lock screen widget type
     }
 }
 
-#Preview(as: .accessoryRectangular) {
+#Preview(as: .accessoryCircular) {
     BuoyDataWidget()
 } timeline: {
     SimpleEntry(date: .now, waveHeight: "5.2 ft", swellPeriod: "7 s", swellDirection: "ESE")
