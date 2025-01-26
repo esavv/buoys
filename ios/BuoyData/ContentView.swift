@@ -11,10 +11,11 @@ struct ContentView: View {
     @State private var waveHeight: String = "Loading..."
     @State private var swellPeriod: String = "Loading..."
     @State private var swellDirection: String = "Loading..."
-    
+    @State private var buoyID: String = "Loading..."
+
     var body: some View {
         VStack {
-            Text("Station 44065 Data")
+            Text("Station \(buoyID) Data")
                 .font(.title)
                 .padding()
             HStack {
@@ -42,12 +43,14 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            fetchBuoyData()
+            let sharedDefaults = UserDefaults(suiteName: "group.BuoyData")
+            buoyID = sharedDefaults?.string(forKey: "favoriteBuoy") ?? "44065"
+            fetchBuoyData(for: buoyID)
         }
     }
     
-    func fetchBuoyData() {
-        guard let url = URL(string: "https://www.ndbc.noaa.gov/data/realtime2/44065.spec") else {
+    func fetchBuoyData(for buoyID: String) {
+        guard let url = URL(string: "https://www.ndbc.noaa.gov/data/realtime2/\(buoyID).spec") else {
             print("Invalid URL")
             return
         }
