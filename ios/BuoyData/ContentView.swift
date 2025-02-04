@@ -6,13 +6,15 @@
 //
 
 import SwiftUI
+import WidgetKit
 
 struct ContentView: View {
     @State private var waveHeight: String = "Loading..."
     @State private var swellPeriod: String = "Loading..."
     @State private var swellDirection: String = "Loading..."
     @State private var buoyID: String = "Loading..."
-
+    @State private var newBuoyID: String = "" // For the text field input
+    
     var body: some View {
         VStack {
             Text("Station \(buoyID) Data")
@@ -41,6 +43,26 @@ struct ContentView: View {
                 Text("\(swellDirection)")
                     .frame(width: 200, alignment: .leading)
             }
+            
+            Divider()
+                .padding(.vertical, 20)
+            
+            Text("Update Buoy")
+                .font(.headline)
+            
+            TextField("Enter new buoy ID", text: $newBuoyID)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .frame(width: 250)
+
+            Button(action: updateFavoriteBuoy) {
+                Text("Submit")
+                    .frame(width: 150)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding()
         }
         .onAppear {
             let sharedDefaults = UserDefaults(suiteName: "group.BuoyData")
@@ -93,8 +115,32 @@ struct ContentView: View {
                 swellDirection = String(latestData[swellDirectionIndex])
             }
         } else {
+            waveHeight = "N/A"
+            swellPeriod = "N/A"
+            swellDirection = "N/A"
             print("Could not find required headers")
         }
+    }
+    
+    func updateFavoriteBuoy() {
+        guard !newBuoyID.isEmpty else {
+            print("New buoy ID is empty")
+            return
+        }
+        
+        let sharedDefaults = UserDefaults(suiteName: "group.BuoyData")
+        sharedDefaults?.set(newBuoyID, forKey: "favoriteBuoy")
+        print("Favorite buoy updated to \(newBuoyID)")
+        
+        // Trigger widget update
+        WidgetCenter.shared.reloadAllTimelines()
+        
+        // Update the current buoy ID and fetch new data
+        buoyID = newBuoyID
+        fetchBuoyData(for: buoyID)
+        
+        // Clear the text field
+        newBuoyID = ""
     }
 }
 
