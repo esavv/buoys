@@ -87,7 +87,7 @@ struct Provider: TimelineProvider {
             
             return (waveHeight, swellPeriod, swellDirection)
         } else {
-            return ("Error: Could not find required headers", "N/A", "N/A")
+            return ("N/A", "N/A", "N/A")
         }
     }
     //    func relevances() async -> WidgetRelevances<Void> {
