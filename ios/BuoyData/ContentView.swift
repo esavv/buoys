@@ -14,7 +14,19 @@ struct ContentView: View {
     @State private var swellDirection: String = "Loading..."
     @State private var buoyID: String = "Loading..."
     @State private var newBuoyID: String = "" // For the text field input
-    
+    @State private var showDropdown = false // Controls visibility of the dropdown
+    @FocusState private var isTextFieldFocused: Bool
+
+    let availableBuoyIDs = ["44065", "44091", "SDHN4"]
+
+    var filteredBuoyIDs: [String] {
+        if newBuoyID.isEmpty {
+            return availableBuoyIDs
+        } else {
+            return availableBuoyIDs.filter { $0.lowercased().contains(newBuoyID.lowercased()) }
+        }
+    }
+
     var body: some View {
         VStack {
             Text("Station \(buoyID) Data")
@@ -50,9 +62,38 @@ struct ContentView: View {
             Text("Update Buoy")
                 .font(.headline)
             
-            TextField("Enter new buoy ID", text: $newBuoyID)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .frame(width: 250)
+            ZStack(alignment: .topLeading) {
+                VStack(spacing: 0) {
+                    TextField("Enter buoy ID", text: $newBuoyID, onEditingChanged: { isEditing in
+                        showDropdown = isEditing
+                    })
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 250)
+                    .focused($isTextFieldFocused)
+                    
+                    if showDropdown {
+                        ZStack(alignment: .topLeading) {
+                            VStack(spacing: 0) { // Ensures no extra padding between items
+                                ForEach(filteredBuoyIDs, id: \.self) { buoy in
+                                    Text(buoy)
+                                        .padding(.vertical, 4) // Adjusts item padding
+                                        .padding(.horizontal, 4) // Adds horizontal padding, including on the left
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .background(Color.white)
+                                        .onTapGesture {
+                                            newBuoyID = buoy
+                                            isTextFieldFocused = false // Resign focus
+                                        }
+                                }
+                            }
+                            .frame(width: 250) // Matches text field width
+                            .background(Color.white)
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.gray)) // Optional border
+                        }
+                        .frame(width: 250) // Ensure the dropdown matches text field width
+                    }
+                }
+            }
 
             Button(action: updateFavoriteBuoy) {
                 Text("Submit")
