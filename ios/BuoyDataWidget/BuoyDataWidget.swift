@@ -43,51 +43,27 @@ struct Provider: TimelineProvider {
         }
     }
 
-    // The fetch and parse logic for buoy data
+    // Fetch buoy data from the API
     func fetchBuoyData(for buoyID: String) async -> (String, String, String) {
-        guard let url = URL(string: "https://www.ndbc.noaa.gov/data/realtime2/\(buoyID).spec") else {
+        guard let url = APIConfig.buoyURL(for: buoyID) else {
             return ("Error: Invalid URL", "N/A", "N/A")
         }
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            if let content = String(data: data, encoding: .utf8) {
-                return parseBuoyData(content)
+            let decoder = JSONDecoder()
+            let buoyResponse = try decoder.decode(BuoyResponse.self, from: data)
+            
+            if buoyResponse.status == "success" {
+                let waveHeight = buoyResponse.sigWaveHeightFt ?? "N/A"
+                let swellPeriod = buoyResponse.swellPeriodS ?? "N/A"
+                let swellDirection = buoyResponse.swellDirection ?? "N/A"
+                return (waveHeight, swellPeriod, swellDirection)
             } else {
-                return ("Error: Invalid data format", "N/A", "N/A")
+                return ("Error: \(buoyResponse.errorMsg ?? "Unknown")", "N/A", "N/A")
             }
         } catch {
             return ("Error: \(error.localizedDescription)", "N/A", "N/A")
-        }
-    }
-
-    func parseBuoyData(_ content: String) -> (String, String, String) {
-        let lines = content.split(separator: "\n")
-        guard lines.count > 2 else {
-            return ("Error: Unexpected file format", "N/A", "N/A")
-        }
-
-        // Column headers
-        let headers = lines[0].split(separator: " ", omittingEmptySubsequences: true)
-        // Most recent data (third row)
-        let latestData = lines[2].split(separator: " ", omittingEmptySubsequences: true)
-
-        if let waveHeightIndex = headers.firstIndex(of: "WVHT"),
-           let swellPeriodIndex = headers.firstIndex(of: "SwP"),
-           let swellDirectionIndex = headers.firstIndex(of: "SwD") {
-            var waveHeight = "N/A"
-            if let waveHeightMeters = Double(latestData[waveHeightIndex]) {
-                let waveHeightFeet = waveHeightMeters * 3.28084
-                waveHeight = String(format: "%.1f", waveHeightFeet) // Format to 1 decimal place
-            } else {
-                return ("Error: Invalid wave height data", "N/A", "N/A")
-            }
-            let swellPeriod = String(latestData[swellPeriodIndex])
-            let swellDirection = String(latestData[swellDirectionIndex])
-            
-            return (waveHeight, swellPeriod, swellDirection)
-        } else {
-            return ("N/A", "N/A", "N/A")
         }
     }
     //    func relevances() async -> WidgetRelevances<Void> {

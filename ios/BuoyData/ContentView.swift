@@ -113,7 +113,7 @@ struct ContentView: View {
     }
     
     func fetchBuoyData(for buoyID: String) {
-        guard let url = URL(string: "https://www.ndbc.noaa.gov/data/realtime2/\(buoyID).spec") else {
+        guard let url = APIConfig.buoyURL(for: buoyID) else {
             print("Invalid URL")
             return
         }
@@ -124,43 +124,31 @@ struct ContentView: View {
                 return
             }
             
-            if let content = String(data: data, encoding: .utf8) {
-                parseBuoyData(content)
+            do {
+                let decoder = JSONDecoder()
+                let buoyResponse = try decoder.decode(BuoyResponse.self, from: data)
+                
+                DispatchQueue.main.async {
+                    if buoyResponse.status == "success" {
+                        waveHeight = buoyResponse.sigWaveHeightFt ?? "N/A"
+                        swellPeriod = buoyResponse.swellPeriodS ?? "N/A"
+                        swellDirection = buoyResponse.swellDirection ?? "N/A"
+                    } else {
+                        waveHeight = "N/A"
+                        swellPeriod = "N/A"
+                        swellDirection = "N/A"
+                        print("API error: \(buoyResponse.errorMsg ?? "Unknown error")")
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    waveHeight = "N/A"
+                    swellPeriod = "N/A"
+                    swellDirection = "N/A"
+                }
+                print("JSON decoding error: \(error.localizedDescription)")
             }
         }.resume()
-    }
-    
-    func parseBuoyData(_ content: String) {
-        let lines = content.split(separator: "\n")
-        guard lines.count > 2 else {
-            print("Unexpected file format")
-            return
-        }
-        
-        // Column headers
-        let headers = lines[0].split(separator: " ", omittingEmptySubsequences: true)
-        // Most recent data (third row)
-        let latestData = lines[2].split(separator: " ", omittingEmptySubsequences: true)
-        
-        if let waveHeightIndex = headers.firstIndex(of: "WVHT"),
-           let swellPeriodIndex = headers.firstIndex(of: "SwP"),
-           let swellDirectionIndex = headers.firstIndex(of: "SwD") {
-            DispatchQueue.main.async {
-                if let waveHeightMeters = Double(latestData[waveHeightIndex]) {
-                    let waveHeightFeet = waveHeightMeters * 3.28084
-                    waveHeight = String(format: "%.1f", waveHeightFeet) // Format to 1 decimal place
-                } else {
-                    waveHeight = "N/A"
-                }
-                swellPeriod = String(latestData[swellPeriodIndex])
-                swellDirection = String(latestData[swellDirectionIndex])
-            }
-        } else {
-            waveHeight = "N/A"
-            swellPeriod = "N/A"
-            swellDirection = "N/A"
-            print("Could not find required headers")
-        }
     }
     
     func updateFavoriteBuoy() {
