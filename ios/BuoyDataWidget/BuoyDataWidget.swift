@@ -10,7 +10,7 @@ import SwiftUI
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), waveHeight: "Loading...", swellPeriod: "Loading...", swellDirection: "Loading...", buoyID: "Loading...")
+        SimpleEntry(date: Date(), waveHeight: "—", swellPeriod: "—", swellDirection: "—", buoyID: "—", errorMessage: nil)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
@@ -18,8 +18,8 @@ struct Provider: TimelineProvider {
         let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy") ?? "44065"
         // Call the shared fetch function (this example uses async/await)
         Task {
-            let (waveHeight, swellPeriod, swellDirection) = await fetchBuoyData(for: buoyID)
-            let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, buoyID: buoyID)
+            let (waveHeight, swellPeriod, swellDirection, errorMessage) = await fetchBuoyData(for: buoyID)
+            let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, buoyID: buoyID, errorMessage: errorMessage)
             completion(entry)
         }
     }
@@ -29,11 +29,11 @@ struct Provider: TimelineProvider {
         let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy") ?? "44065"
         // Fetch the data for the widget (wave height, swell period, swell direction)
         Task {
-            let (waveHeight, swellPeriod, swellDirection) = await fetchBuoyData(for: buoyID)
+            let (waveHeight, swellPeriod, swellDirection, errorMessage) = await fetchBuoyData(for: buoyID)
 
             // Create a single entry for the current time
             let currentDate = Date()
-            let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, buoyID: buoyID)
+            let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, buoyID: buoyID, errorMessage: errorMessage)
 
             // Set the refresh policy to update hourly
             let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: currentDate)!
@@ -44,9 +44,11 @@ struct Provider: TimelineProvider {
     }
 
     // Fetch buoy data from the API
-    func fetchBuoyData(for buoyID: String) async -> (String, String, String) {
+    // Returns (waveHeight, swellPeriod, swellDirection, errorMessage)
+    func fetchBuoyData(for buoyID: String) async -> (String, String, String, String?) {
         guard let url = APIConfig.buoyURL(for: buoyID) else {
-            return ("Error: Invalid URL", "N/A", "N/A")
+            print("Widget error: Invalid URL")
+            return ("", "", "", "Invalid URL")
         }
 
         do {
@@ -58,17 +60,17 @@ struct Provider: TimelineProvider {
                 let waveHeight = buoyResponse.sigWaveHeightFt ?? "N/A"
                 let swellPeriod = buoyResponse.swellPeriodS ?? "N/A"
                 let swellDirection = buoyResponse.swellDirection ?? "N/A"
-                return (waveHeight, swellPeriod, swellDirection)
+                return (waveHeight, swellPeriod, swellDirection, nil)
             } else {
-                return ("Error: \(buoyResponse.errorMsg ?? "Unknown")", "N/A", "N/A")
+                let errorMsg = buoyResponse.errorMsg ?? "Unknown API error"
+                print("Widget API error: \(errorMsg)")
+                return ("", "", "", errorMsg)
             }
         } catch {
-            return ("Error: \(error.localizedDescription)", "N/A", "N/A")
+            print("Widget fetch error: \(error.localizedDescription)")
+            return ("", "", "", error.localizedDescription)
         }
     }
-    //    func relevances() async -> WidgetRelevances<Void> {
-    //        // Generate a list containing the contexts this widget is relevant in.
-    //    }
 }
 
 struct SimpleEntry: TimelineEntry {
@@ -77,6 +79,7 @@ struct SimpleEntry: TimelineEntry {
     let swellPeriod: String
     let swellDirection: String
     let buoyID: String
+    let errorMessage: String?
 }
 
 struct BuoyDataWidgetEntryView : View {
@@ -86,18 +89,26 @@ struct BuoyDataWidgetEntryView : View {
         VStack(alignment: .center, spacing: -1) {
             Text("\(entry.buoyID)")
                 .font(.system(size: 8))
-            HStack {
-                Text("\(entry.waveHeight) ft")
-                    .font(.system(size: 15))
-            }
-            HStack {
-                Text("\(entry.swellPeriod) s")
-                    .font(.system(size: 15))
-            }
-            HStack {
-                Text(entry.swellDirection)
-                    .font(.system(size: 15))
-//                    .font(.footnote)
+            
+            if entry.errorMessage != nil {
+                Spacer().frame(height: 6)
+                Text("Server\nError")
+                    .font(.system(size: 12))
+                    .multilineTextAlignment(.center)
+                Spacer()
+            } else {
+                HStack {
+                    Text("\(entry.waveHeight) ft")
+                        .font(.system(size: 15))
+                }
+                HStack {
+                    Text("\(entry.swellPeriod) s")
+                        .font(.system(size: 15))
+                }
+                HStack {
+                    Text(entry.swellDirection)
+                        .font(.system(size: 15))
+                }
             }
         }
     }
@@ -126,6 +137,6 @@ struct BuoyDataWidget: Widget {
 #Preview(as: .accessoryCircular) {
     BuoyDataWidget()
 } timeline: {
-    SimpleEntry(date: .now, waveHeight: "5.2 ft", swellPeriod: "7 s", swellDirection: "ESE", buoyID: "44065")
-    SimpleEntry(date: .now, waveHeight: "5.2 ft", swellPeriod: "7 s", swellDirection: "ESE", buoyID: "44065")
+    SimpleEntry(date: .now, waveHeight: "5.2", swellPeriod: "7", swellDirection: "ESE", buoyID: "44065", errorMessage: nil)
+    SimpleEntry(date: .now, waveHeight: "", swellPeriod: "", swellDirection: "", buoyID: "44065", errorMessage: "Network error")
 }
