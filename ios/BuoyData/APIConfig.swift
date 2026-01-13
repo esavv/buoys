@@ -9,7 +9,7 @@
 import Foundation
 
 enum APIConfig {
-    static let baseURL = "https://82f14c6eacc3.ngrok-free.app"
+    static let baseURL = "https://api.buoy-data.com"
     
     static func buoyURL(for buoyID: String) -> URL? {
         URL(string: "\(baseURL)/buoy?id=\(buoyID)")
