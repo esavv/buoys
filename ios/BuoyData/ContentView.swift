@@ -31,7 +31,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            Text("Station \(buoyID) Data")
+            Text("Station \(buoyID)")
                 .font(.title)
                 .padding()
             HStack {
