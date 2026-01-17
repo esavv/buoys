@@ -10,8 +10,10 @@ import WidgetKit
 
 struct ContentView: View {
     @State private var waveHeight: String = "Loading..."
+    @State private var swellHeight: String = "Loading..."
     @State private var swellPeriod: String = "Loading..."
     @State private var swellDirection: String = "Loading..."
+    @State private var lastUpdated: String = "Loading..."
     @State private var buoyID: String = "Loading..."
     @State private var newBuoyID: String = "" // For the text field input
     @State private var showDropdown = false // Controls visibility of the dropdown
@@ -34,10 +36,18 @@ struct ContentView: View {
                 .padding()
             HStack {
                 Text("Sig. Wave Height:")
-                    .frame(width: 250, alignment: .trailing) // Fixed width for right-alignment
+                    .frame(width: 250, alignment: .trailing)
                 Spacer()
                 Text("\(waveHeight) ft")
-                    .frame(width: 200, alignment: .leading) // Left-aligned data
+                    .frame(width: 200, alignment: .leading)
+            }
+            
+            HStack {
+                Text("Swell Height:")
+                    .frame(width: 250, alignment: .trailing)
+                Spacer()
+                Text("\(swellHeight) ft")
+                    .frame(width: 200, alignment: .leading)
             }
             
             HStack {
@@ -53,6 +63,14 @@ struct ContentView: View {
                     .frame(width: 250, alignment: .trailing)
                 Spacer()
                 Text("\(swellDirection)")
+                    .frame(width: 200, alignment: .leading)
+            }
+            
+            HStack {
+                Text("Last Updated:")
+                    .frame(width: 250, alignment: .trailing)
+                Spacer()
+                Text("\(lastUpdated)")
                     .frame(width: 200, alignment: .leading)
             }
             
@@ -131,20 +149,26 @@ struct ContentView: View {
                 DispatchQueue.main.async {
                     if buoyResponse.status == "success" {
                         waveHeight = buoyResponse.sigWaveHeightFt ?? "N/A"
+                        swellHeight = buoyResponse.swellHeightFt ?? "N/A"
                         swellPeriod = buoyResponse.swellPeriodS ?? "N/A"
                         swellDirection = buoyResponse.swellDirection ?? "N/A"
+                        lastUpdated = buoyResponse.lastUpdated ?? "N/A"
                     } else {
                         waveHeight = "N/A"
+                        swellHeight = "N/A"
                         swellPeriod = "N/A"
                         swellDirection = "N/A"
+                        lastUpdated = "N/A"
                         print("API error: \(buoyResponse.errorMsg ?? "Unknown error")")
                     }
                 }
             } catch {
                 DispatchQueue.main.async {
                     waveHeight = "N/A"
+                    swellHeight = "N/A"
                     swellPeriod = "N/A"
                     swellDirection = "N/A"
+                    lastUpdated = "N/A"
                 }
                 print("JSON decoding error: \(error.localizedDescription)")
             }
