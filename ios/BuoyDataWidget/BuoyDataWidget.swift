@@ -111,14 +111,15 @@ struct BuoyDataWidgetEntryView : View {
                     .multilineTextAlignment(.center)
                 Spacer()
             } else {
-                HStack(spacing: 4) {
-                    Text(entry.waveHeight).font(.system(size: 12)) + Text(" ft").font(.system(size: 8))
-                    Text(entry.swellHeight).font(.system(size: 12)) + Text(" ft").font(.system(size: 8))
-                }
-                HStack(spacing: 4) {
-                    Text(entry.swellPeriod).font(.system(size: 12)) + Text(" s").font(.system(size: 8))
-                    Text(entry.swellDirection)
-                        .font(.system(size: 12))
+                Grid(horizontalSpacing: 4, verticalSpacing: 1) {
+                    GridRow {
+                        Text(entry.waveHeight).font(.system(size: 12)) + Text(" ft").font(.system(size: 8))
+                        Text(entry.swellHeight).font(.system(size: 12)) + Text(" ft").font(.system(size: 8))
+                    }
+                    GridRow {
+                        Text(entry.swellPeriod).font(.system(size: 12)) + Text(" s").font(.system(size: 8))
+                        Text(entry.swellDirection).font(.system(size: 12))
+                    }
                 }
                 Text(formatTime(entry.lastUpdated))
                     .font(.system(size: 8))
