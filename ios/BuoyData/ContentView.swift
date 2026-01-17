@@ -62,25 +62,24 @@ struct ContentView: View {
                     .frame(width: 200, alignment: .leading)
             }
             
-            Divider()
-                .padding(.vertical, 20)
-            
             Text("Update Buoy")
+                .padding(.top, 20)
                 .font(.headline)
             
             TextField("Enter buoy ID", text: $newBuoyID)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .frame(width: 250)
+                .frame(width: 200)
+                .padding(.top, 0)
 
             Button(action: updateFavoriteBuoy) {
                 Text("Submit")
-                    .frame(width: 150)
                     .padding()
+                    .frame(width: 200)
                     .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .padding()
+            .padding(.top, 8)
         }
         .onAppear {
             let sharedDefaults = UserDefaults(suiteName: "group.BuoyData")
