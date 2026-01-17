@@ -98,11 +98,20 @@ struct BuoyDataWidgetEntryView : View {
         let ampm = String(components[1])
         return time + ampm
     }
+    
+    // Rounds values >= 10 to nearest integer
+    private func formatValue(_ value: String) -> String {
+        guard let num = Double(value) else { return value }
+        if num >= 10 {
+            return String(Int(num.rounded()))
+        }
+        return value
+    }
 
     var body: some View {
         VStack(alignment: .center, spacing: 1) {
             Text("\(entry.buoyID)")
-                .font(.system(size: 8))
+                .font(.system(size: 9))
             
             if entry.errorMessage != nil {
                 Spacer().frame(height: 6)
@@ -113,16 +122,16 @@ struct BuoyDataWidgetEntryView : View {
             } else {
                 Grid(horizontalSpacing: 4, verticalSpacing: 1) {
                     GridRow {
-                        Text(entry.waveHeight).font(.system(size: 12)) + Text(" ft").font(.system(size: 8))
-                        Text(entry.swellHeight).font(.system(size: 12)) + Text(" ft").font(.system(size: 8))
+                        Text(formatValue(entry.waveHeight)).font(.system(size: 14)) + Text(" ft").font(.system(size: 8))
+                        Text(formatValue(entry.swellPeriod)).font(.system(size: 14)) + Text(" s").font(.system(size: 8))
                     }
                     GridRow {
-                        Text(entry.swellPeriod).font(.system(size: 12)) + Text(" s").font(.system(size: 8))
-                        Text(entry.swellDirection).font(.system(size: 12))
+                        Text(formatValue(entry.swellHeight)).font(.system(size: 14)) + Text(" ft").font(.system(size: 8))
+                        Text(entry.swellDirection).font(.system(size: 14))
                     }
                 }
                 Text(formatTime(entry.lastUpdated))
-                    .font(.system(size: 8))
+                    .font(.system(size: 9))
             }
         }
     }
