@@ -46,6 +46,7 @@ struct Provider: TimelineProvider {
     // Fetch buoy data from the API
     // Returns (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, errorMessage)
     func fetchBuoyData(for buoyID: String) async -> (String, String, String, String, String, String?) {
+        // return ("3.6", "3.3", "5.9", "WNW", "3:45 pm EST", nil) // hardcoded for testing
         guard let url = APIConfig.buoyURL(for: buoyID) else {
             print("Widget error: Invalid URL")
             return ("", "", "", "", "", "Invalid URL")
@@ -122,12 +123,15 @@ struct BuoyDataWidgetEntryView : View {
             } else {
                 Grid(horizontalSpacing: 4, verticalSpacing: 1) {
                     GridRow {
-                        Text(formatValue(entry.waveHeight)).font(.system(size: 14)) + Text(" ft").font(.system(size: 8))
-                        Text(formatValue(entry.swellPeriod)).font(.system(size: 14)) + Text(" s").font(.system(size: 8))
+                        Text(formatValue(entry.waveHeight)).font(.system(size: 14)) + Text(" ").font(.system(size: 5)) + Text("ft").font(.system(size: 7))
+                        Text(formatValue(entry.swellPeriod)).font(.system(size: 14)) + Text(" ").font(.system(size: 5)) + Text("s").font(.system(size: 7))
                     }
                     GridRow {
-                        Text(formatValue(entry.swellHeight)).font(.system(size: 14)) + Text(" ft").font(.system(size: 8))
-                        Text(entry.swellDirection).font(.system(size: 14))
+                        Text(formatValue(entry.swellHeight)).font(.system(size: 14)) + Text(" ").font(.system(size: 5)) + Text("ft").font(.system(size: 7))
+                        Text(entry.swellDirection)
+                            .font(.system(size: 14))
+                            .minimumScaleFactor(0.1)
+                            .lineLimit(1)
                     }
                 }
                 Text(formatTime(entry.lastUpdated))
