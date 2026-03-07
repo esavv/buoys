@@ -202,7 +202,7 @@ struct AddBuoySheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                TextField("Buoy ID (e.g. 44065)", text: $buoyId)
+                TextField("Buoy ID (e.g. 44091)", text: $buoyId)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
