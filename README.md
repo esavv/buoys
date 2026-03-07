@@ -1,6 +1,6 @@
 # BuoyData
 
-An iOS lock screen widget that displays real-time NOAA buoy data for surf forecasting — swell height, period, direction, and more. Check the swell at a glance without unlocking your phone.
+BuoyData is an iOS lock screen widget that displays real-time NOAA buoy data for surf forecasting — swell height, period, direction, and more. Check the swell at a glance without unlocking your phone.
 
 ## Getting Started
 
