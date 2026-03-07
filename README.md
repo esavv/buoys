@@ -1,16 +1,30 @@
-The goal of this project is to build an iPhone widget for the lock screen that displays real-time buoy data most relevant to surf forecasting, namely swell height, period, and direction.
+# BuoyData
 
-Resources
+An iOS lock screen widget that displays real-time NOAA buoy data for surf forecasting — swell height, period, direction, and more. Check the swell at a glance without unlocking your phone.
 
-* The station page for my favorite NOAA buoy, 44065: https://www.ndbc.noaa.gov/station_page.php?station=44065
-* The NOAA NDBC's Web Date Guide: https://www.ndbc.noaa.gov/docs/ndbc_web_data_guide.pdf
-* List of active stations: https://www.ndbc.noaa.gov/activestations.xml
-* NDBC's directory of realtime data: https://www.ndbc.noaa.gov/data/realtime2/
-* 44065 Standard Meteorological Data: https://www.ndbc.noaa.gov/data/realtime2/44065.txt
-* 44065 Spectral Wave Summary Data: https://www.ndbc.noaa.gov/data/realtime2/44065.spec
+## Getting Started
 
-Admin Documentation
+1. Open BuoyData and enter your preferred [NOAA buoy station ID](https://www.ndbc.noaa.gov/activestations.xml)
+2. Long press your lock screen and tap "Customize"
+3. Tap "Add Widgets" and search for BuoyData
+4. Select the circular widget
 
-When building & running an iOS lock screen widget onto your phone from XCode, if you run into build errors, ensure the following in Product > Scheme > Edit Scheme (for BuoyDataWidgetExtension, not BuoyData):
+## Support
+
+For bug reports or feature requests, please [open an issue](https://github.com/esavv/buoys/issues).
+
+## Data Source
+
+All buoy data is sourced from [NOAA's National Data Buoy Center (NDBC)](https://www.ndbc.noaa.gov/).
+
+## Developer Resources
+
+* [NOAA NDBC Web Data Guide](https://www.ndbc.noaa.gov/docs/ndbc_web_data_guide.pdf)
+* [Active stations list](https://www.ndbc.noaa.gov/activestations.xml)
+* [NDBC realtime data directory](https://www.ndbc.noaa.gov/data/realtime2/)
+
+### Building from source
+
+When building & running the lock screen widget from Xcode, if you run into build errors, ensure the following in Product > Scheme > Edit Scheme (for BuoyDataWidgetExtension, not BuoyData):
 * Add this Environment Variable: key: `_XCWidgetKind`, value: `BuoyDataWidget`
 * In WidgetKit Environment ensure attribute Family is set to `accessoryRectangular` (or whichever lock screen accessory family you're using)
