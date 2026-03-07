@@ -34,6 +34,16 @@ class FavoritesStore {
         save()
     }
 
+    func remove(at offsets: IndexSet) {
+        favorites.remove(atOffsets: offsets)
+        save()
+    }
+
+    func move(from source: IndexSet, to destination: Int) {
+        favorites.move(fromOffsets: source, toOffset: destination)
+        save()
+    }
+
     func contains(_ buoyId: String) -> Bool {
         favorites.contains { $0.id == buoyId }
     }

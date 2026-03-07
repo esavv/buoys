@@ -10,36 +10,61 @@ import SwiftUI
 struct FavoritesView: View {
     @Environment(FavoritesStore.self) private var store
     @State private var showingAddSheet = false
+    @State private var editMode: EditMode = .inactive
 
     var body: some View {
-        Group {
-            if store.favorites.isEmpty {
-                VStack(spacing: 16) {
+        NavigationStack {
+            Group {
+                if store.favorites.isEmpty {
+                VStack {
                     Spacer()
-                    Image(systemName: "star")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.secondary)
-                    Text("No favorite buoys yet")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
                     addButton
+                        .padding(.horizontal)
                     Spacer()
                 }
-            } else {
-                ScrollView {
-                    VStack(spacing: 12) {
+                } else {
+                    List {
                         ForEach(Array(store.favorites.enumerated()), id: \.element.id) { index, buoy in
                             FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: index == 0)
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                         }
+                        .onDelete { store.remove(at: $0) }
+                        .onMove { store.move(from: $0, to: $1) }
 
-                        addButton
+                        if editMode == .inactive {
+                            addButton
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                        }
                     }
-                    .padding()
+                    .listStyle(.plain)
                 }
             }
-        }
-        .sheet(isPresented: $showingAddSheet) {
-            AddBuoySheet()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !store.favorites.isEmpty {
+                        Button {
+                            withAnimation {
+                                editMode = editMode == .active ? .inactive : .active
+                            }
+                        } label: {
+                            if editMode == .active {
+                                Text("Done").fontWeight(.semibold)
+                            } else {
+                                Image(systemName: "square.and.pencil")
+                            }
+                        }
+                    }
+                }
+            }
+            .environment(\.editMode, $editMode)
+            .sheet(isPresented: $showingAddSheet) {
+                AddBuoySheet()
+            }
         }
     }
 
