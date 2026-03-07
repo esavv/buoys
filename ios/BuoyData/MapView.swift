@@ -10,14 +10,25 @@ import MapKit
 
 struct MapView: View {
     @State private var stations: [Station] = []
+    @State private var selectedStation: Station? = nil
 
     var body: some View {
-        BuoyMapView(stations: stations)
-            .onAppear {
-                if stations.isEmpty {
-                    fetchStations()
+        ZStack(alignment: .bottom) {
+            BuoyMapView(stations: stations, selectedStation: $selectedStation)
+
+            if let station = selectedStation {
+                StationCard(station: station) {
+                    selectedStation = nil
                 }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+        }
+        .animation(.easeInOut(duration: 0.25), value: selectedStation?.id)
+        .onAppear {
+            if stations.isEmpty {
+                fetchStations()
+            }
+        }
     }
 
     private func fetchStations() {
@@ -43,6 +54,36 @@ struct MapView: View {
     }
 }
 
+struct StationCard: View {
+    let station: Station
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(station.name)
+                    .font(.headline)
+                Text("Station \(station.id)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button(action: onDismiss) {
+                Image(systemName: "xmark.circle.fill")
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.gray)
+                    .font(.title2)
+            }
+        }
+        .padding()
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(radius: 4)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+}
+
 class BuoyAnnotation: NSObject, MKAnnotation {
     let stationId: String
     let coordinate: CLLocationCoordinate2D
@@ -60,6 +101,7 @@ class BuoyAnnotation: NSObject, MKAnnotation {
 
 struct BuoyMapView: UIViewRepresentable {
     let stations: [Station]
+    @Binding var selectedStation: Station?
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -74,6 +116,8 @@ struct BuoyMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
+        context.coordinator.parent = self
+
         let existingIds = Set(mapView.annotations.compactMap { ($0 as? BuoyAnnotation)?.stationId })
         let newIds = Set(stations.map { $0.id })
 
@@ -85,10 +129,16 @@ struct BuoyMapView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(parent: self)
     }
 
     class Coordinator: NSObject, MKMapViewDelegate {
+        var parent: BuoyMapView
+
+        init(parent: BuoyMapView) {
+            self.parent = parent
+        }
+
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
             if let cluster = annotation as? MKClusterAnnotation {
                 let view = mapView.dequeueReusableAnnotationView(
@@ -116,6 +166,17 @@ struct BuoyMapView: UIViewRepresentable {
             view.canShowCallout = false
             view.annotation = buoyAnnotation
             return view
+        }
+
+        func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
+            guard let buoyAnnotation = annotation as? BuoyAnnotation else { return }
+            parent.selectedStation = parent.stations.first { $0.id == buoyAnnotation.stationId }
+            mapView.setCenter(buoyAnnotation.coordinate, animated: true)
+        }
+
+        func mapView(_ mapView: MKMapView, didDeselect annotation: MKAnnotation) {
+            guard annotation is BuoyAnnotation else { return }
+            parent.selectedStation = nil
         }
     }
 }
