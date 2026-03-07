@@ -20,6 +20,7 @@ struct MapView: View {
                 StationCard(station: station) {
                     selectedStation = nil
                 }
+                .id(station.id)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
@@ -58,21 +59,45 @@ struct StationCard: View {
     let station: Station
     let onDismiss: () -> Void
 
+    @State private var buoyData: BuoyResponse? = nil
+    @State private var isLoading = true
+
     var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(station.name)
-                    .font(.headline)
-                Text("Station \(station.id)")
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(station.name)
+                        .font(.headline)
+                    Text("Station \(station.id)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark.circle.fill")
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.gray)
+                        .font(.title2)
+                }
+            }
+
+            Divider()
+                .padding(.vertical, 10)
+
+            if isLoading {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+            } else if let data = buoyData, data.status == "success" {
+                BuoyReadingGrid(data: data)
+            } else {
+                Text("No data available")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Button(action: onDismiss) {
-                Image(systemName: "xmark.circle.fill")
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.gray)
-                    .font(.title2)
+                    .padding(.vertical, 8)
             }
         }
         .padding()
@@ -81,6 +106,63 @@ struct StationCard: View {
         .shadow(radius: 4)
         .padding(.horizontal)
         .padding(.bottom, 8)
+        .onAppear {
+            fetchBuoyData()
+        }
+    }
+
+    private func fetchBuoyData() {
+        guard let url = APIConfig.buoyURL(for: station.id) else { return }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil else {
+                DispatchQueue.main.async { isLoading = false }
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(BuoyResponse.self, from: data)
+                DispatchQueue.main.async {
+                    buoyData = decoded
+                    isLoading = false
+                }
+            } catch {
+                DispatchQueue.main.async { isLoading = false }
+            }
+        }.resume()
+    }
+}
+
+struct BuoyReadingGrid: View {
+    let data: BuoyResponse
+
+    var body: some View {
+        Grid(alignment: .leading, verticalSpacing: 4) {
+            readingRow("Sig. Wave Height", value: data.sigWaveHeightFt, unit: "ft")
+            readingRow("Swell Height", value: data.swellHeightFt, unit: "ft")
+            readingRow("Swell Period", value: data.swellPeriodS, unit: "s")
+            readingRow("Swell Direction", value: data.swellDirection)
+            readingRow("Last Updated", value: data.lastUpdated)
+        }
+    }
+
+    @ViewBuilder
+    private func readingRow(_ label: String, value: String?, unit: String? = nil) -> some View {
+        GridRow {
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .gridColumnAlignment(.trailing)
+            if let value = value, value != "N/A" {
+                Text(unit != nil ? "\(value) \(unit!)" : value)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+            } else {
+                Text("N/A")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 
