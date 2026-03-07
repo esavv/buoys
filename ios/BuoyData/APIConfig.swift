@@ -14,6 +14,30 @@ enum APIConfig {
     static func buoyURL(for buoyID: String) -> URL? {
         URL(string: "\(baseURL)/buoy?id=\(buoyID)")
     }
+
+    static var stationsURL: URL? {
+        URL(string: "\(baseURL)/stations")
+    }
+}
+
+struct Station: Codable, Identifiable {
+    let id: String
+    let lat: Double
+    let lon: Double
+    let name: String
+    let owner: String
+}
+
+struct StationsResponse: Codable {
+    let status: String
+    let count: Int?
+    let stations: [Station]?
+    let errorMsg: String?
+
+    enum CodingKeys: String, CodingKey {
+        case status, count, stations
+        case errorMsg = "error_msg"
+    }
 }
 
 /// Response model for the buoy API endpoint
