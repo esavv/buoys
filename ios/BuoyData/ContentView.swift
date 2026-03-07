@@ -9,6 +9,8 @@ import SwiftUI
 import MapKit
 
 struct ContentView: View {
+    @State private var store = FavoritesStore()
+
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -20,9 +22,9 @@ struct ContentView: View {
     var body: some View {
         TabView {
             Tab {
-                SearchView()
+                FavoritesView()
             } label: {
-                Label("Search", systemImage: "magnifyingglass")
+                Label("Favorites", systemImage: "star.fill")
             }
 
             Tab {
@@ -31,6 +33,7 @@ struct ContentView: View {
                 Label("Map", systemImage: "map")
             }
         }
+        .environment(store)
         .background {
             Map()
                 .frame(width: 1, height: 1)
