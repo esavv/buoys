@@ -5,7 +5,7 @@ An iOS lock screen widget that displays real-time NOAA buoy data for surf foreca
 ## Getting Started
 
 1. Open BuoyData and enter your preferred [NOAA buoy station ID](https://www.ndbc.noaa.gov/activestations.xml)
-2. Long press your lock screen and tap "Customize"
+2. To customize your lock screen, either long press the lock screen and tap "Customize", or go to Settings > Wallpaper > Customize
 3. Tap "Add Widgets" and search for BuoyData
 4. Select the circular widget
 
