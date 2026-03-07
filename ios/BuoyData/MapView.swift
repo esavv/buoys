@@ -9,31 +9,15 @@ import SwiftUI
 import MapKit
 
 struct MapView: View {
-    @State private var position: MapCameraPosition = .region(
-        MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 35.0, longitude: -68.0),
-            span: MKCoordinateSpan(latitudeDelta: 30, longitudeDelta: 30)
-        )
-    )
     @State private var stations: [Station] = []
 
     var body: some View {
-        Map(position: $position) {
-            ForEach(stations) { station in
-                Marker(
-                    station.name,
-                    coordinate: CLLocationCoordinate2D(
-                        latitude: station.lat,
-                        longitude: station.lon
-                    )
-                )
+        BuoyMapView(stations: stations)
+            .onAppear {
+                if stations.isEmpty {
+                    fetchStations()
+                }
             }
-        }
-        .onAppear {
-            if stations.isEmpty {
-                fetchStations()
-            }
-        }
     }
 
     private func fetchStations() {
@@ -56,6 +40,83 @@ struct MapView: View {
                 print("Stations decode error: \(error.localizedDescription)")
             }
         }.resume()
+    }
+}
+
+class BuoyAnnotation: NSObject, MKAnnotation {
+    let stationId: String
+    let coordinate: CLLocationCoordinate2D
+    let title: String?
+    let subtitle: String?
+
+    init(station: Station) {
+        self.stationId = station.id
+        self.coordinate = CLLocationCoordinate2D(latitude: station.lat, longitude: station.lon)
+        self.title = station.name
+        self.subtitle = "Station \(station.id)"
+        super.init()
+    }
+}
+
+struct BuoyMapView: UIViewRepresentable {
+    let stations: [Station]
+
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.delegate = context.coordinator
+        mapView.region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 35.0, longitude: -68.0),
+            span: MKCoordinateSpan(latitudeDelta: 30, longitudeDelta: 30)
+        )
+        mapView.register(MKMarkerAnnotationView.self, forAnnotationViewWithReuseIdentifier: "BuoyMarker")
+        mapView.register(MKMarkerAnnotationView.self, forAnnotationViewWithReuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
+        return mapView
+    }
+
+    func updateUIView(_ mapView: MKMapView, context: Context) {
+        let existingIds = Set(mapView.annotations.compactMap { ($0 as? BuoyAnnotation)?.stationId })
+        let newIds = Set(stations.map { $0.id })
+
+        guard existingIds != newIds else { return }
+
+        mapView.removeAnnotations(mapView.annotations)
+        let annotations = stations.map { BuoyAnnotation(station: $0) }
+        mapView.addAnnotations(annotations)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    class Coordinator: NSObject, MKMapViewDelegate {
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if let cluster = annotation as? MKClusterAnnotation {
+                let view = mapView.dequeueReusableAnnotationView(
+                    withIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier,
+                    for: cluster
+                ) as? MKMarkerAnnotationView ?? MKMarkerAnnotationView(annotation: cluster, reuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
+                view.markerTintColor = .systemRed
+                view.titleVisibility = .hidden
+                view.subtitleVisibility = .hidden
+                return view
+            }
+
+            guard let buoyAnnotation = annotation as? BuoyAnnotation else { return nil }
+
+            let identifier = "BuoyMarker"
+            let view = mapView.dequeueReusableAnnotationView(
+                withIdentifier: identifier,
+                for: buoyAnnotation
+            ) as? MKMarkerAnnotationView ?? MKMarkerAnnotationView(annotation: buoyAnnotation, reuseIdentifier: identifier)
+
+            view.clusteringIdentifier = "buoy"
+            view.markerTintColor = .systemRed
+            view.titleVisibility = .hidden
+            view.subtitleVisibility = .hidden
+            view.canShowCallout = false
+            view.annotation = buoyAnnotation
+            return view
+        }
     }
 }
 
