@@ -59,8 +59,13 @@ struct StationCard: View {
     let station: Station
     let onDismiss: () -> Void
 
+    @Environment(FavoritesStore.self) private var store
     @State private var buoyData: BuoyResponse? = nil
     @State private var isLoading = true
+
+    private var isFavorite: Bool {
+        store.contains(station.id)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -98,6 +103,33 @@ struct StationCard: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 8)
+            }
+
+            Divider()
+                .padding(.vertical, 10)
+
+            HStack {
+                Spacer()
+                if isFavorite {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark")
+                            .font(.subheadline)
+                        Text("Favorite Buoy")
+                            .font(.subheadline)
+                    }
+                    .foregroundStyle(.secondary)
+                } else {
+                    Button {
+                        store.add(station.id)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
+                                .font(.subheadline)
+                            Text("Add to Favorites")
+                                .font(.subheadline)
+                        }
+                    }
+                }
             }
         }
         .padding()
@@ -138,11 +170,11 @@ struct BuoyReadingGrid: View {
 
     var body: some View {
         Grid(alignment: .leading, verticalSpacing: 4) {
-            readingRow("Sig. Wave Height", value: data.sigWaveHeightFt, unit: "ft")
+            readingRow("Wave Height", value: data.sigWaveHeightFt, unit: "ft")
             readingRow("Swell Height", value: data.swellHeightFt, unit: "ft")
             readingRow("Swell Period", value: data.swellPeriodS, unit: "s")
             readingRow("Swell Direction", value: data.swellDirection)
-            readingRow("Last Updated", value: data.lastUpdated)
+            readingRow("Updated", value: data.lastUpdated)
         }
     }
 

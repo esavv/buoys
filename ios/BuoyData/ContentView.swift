@@ -8,8 +8,13 @@
 import SwiftUI
 import MapKit
 
+enum AppTab: Hashable {
+    case favorites, map
+}
+
 struct ContentView: View {
     @State private var store = FavoritesStore()
+    @State private var selectedTab: AppTab = .favorites
 
     init() {
         let appearance = UITabBarAppearance()
@@ -20,14 +25,14 @@ struct ContentView: View {
     }
 
     var body: some View {
-        TabView {
-            Tab {
-                FavoritesView()
+        TabView(selection: $selectedTab) {
+            Tab(value: .favorites) {
+                FavoritesView(selectedTab: $selectedTab)
             } label: {
                 Label("Favorites", systemImage: "star.fill")
             }
 
-            Tab {
+            Tab(value: .map) {
                 MapView()
             } label: {
                 Label("Map", systemImage: "map")

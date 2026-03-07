@@ -9,6 +9,7 @@ import SwiftUI
 
 struct FavoritesView: View {
     @Environment(FavoritesStore.self) private var store
+    @Binding var selectedTab: AppTab
     @State private var showingAddSheet = false
     @State private var editMode: EditMode = .inactive
 
@@ -63,7 +64,8 @@ struct FavoritesView: View {
             }
             .environment(\.editMode, $editMode)
             .sheet(isPresented: $showingAddSheet) {
-                AddBuoySheet()
+                AddBuoySheet(selectedTab: $selectedTab)
+                    .presentationDetents([.fraction(0.4)])
             }
         }
     }
@@ -194,6 +196,7 @@ struct FavoriteBuoyReadings: View {
 struct AddBuoySheet: View {
     @Environment(FavoritesStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Binding var selectedTab: AppTab
 
     @State private var buoyId = ""
     @State private var isValidating = false
@@ -202,11 +205,14 @@ struct AddBuoySheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                TextField("Buoy ID (e.g. 44091)", text: $buoyId)
+                Text("Enter a Buoy ID")
+                    .font(.subheadline)
+
+                TextField("44091", text: $buoyId)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                    .padding(.horizontal)
+                    .frame(maxWidth: 240)
 
                 if let error = errorMessage {
                     Text(error)
@@ -219,14 +225,26 @@ struct AddBuoySheet: View {
                 } label: {
                     if isValidating {
                         ProgressView()
-                            .frame(width: 200)
+                            .frame(maxWidth: .infinity)
                     } else {
                         Text("Add")
-                            .frame(width: 200)
+                            .frame(maxWidth: .infinity)
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(buoyId.trimmingCharacters(in: .whitespaces).isEmpty || isValidating)
+                .frame(maxWidth: 240)
+
+                Text("or")
+                    .font(.subheadline)
+
+                Button {
+                    dismiss()
+                    selectedTab = .map
+                } label: {
+                    Text("Select From Map")
+                        .font(.subheadline)
+                }
 
                 Spacer()
             }
@@ -289,6 +307,6 @@ struct AddBuoySheet: View {
 }
 
 #Preview {
-    FavoritesView()
+    FavoritesView(selectedTab: .constant(.favorites))
         .environment(FavoritesStore())
 }
