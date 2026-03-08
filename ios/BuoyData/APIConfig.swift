@@ -43,6 +43,7 @@ struct StationsResponse: Codable {
 /// Response model for the buoy API endpoint
 struct BuoyResponse: Codable {
     let status: String
+    let name: String?
     let lastUpdated: String?
     let sigWaveHeightFt: String?
     let swellHeightFt: String?
@@ -51,7 +52,7 @@ struct BuoyResponse: Codable {
     let errorMsg: String?
     
     enum CodingKeys: String, CodingKey {
-        case status
+        case status, name
         case lastUpdated = "last_updated"
         case sigWaveHeightFt = "sig_wave_height_ft"
         case swellHeightFt = "swell_height_ft"

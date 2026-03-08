@@ -109,8 +109,17 @@ struct FavoriteBuoyRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Station \(buoy.id)")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 2) {
+                    if let name = buoyData?.name {
+                        Text(name)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                    Text("Station \(buoy.id)")
+                        .font(buoyData?.name != nil ? .subheadline : .headline)
+                        .foregroundStyle(buoyData?.name != nil ? .secondary : .primary)
+                }
                 Spacer()
                 if isWidgetBuoy {
                     Image(systemName: "star.fill")
