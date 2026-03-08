@@ -177,14 +177,26 @@ struct FavoriteBuoyReadings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 24) {
-                VStack(alignment: .leading, spacing: 2) {
-                    readingLine("Wave Height", value: showValues ? data.sigWaveHeightFt : nil, unit: "ft")
-                    readingLine("Swell Height", value: showValues ? data.swellHeightFt : nil, unit: "ft")
+            HStack(spacing: 20) {
+                Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 2) {
+                    GridRow {
+                        readingLabel("Wave Height:")
+                        readingValue(showValues ? data.sigWaveHeightFt : nil, unit: "ft")
+                    }
+                    GridRow {
+                        readingLabel("Swell Height:")
+                        readingValue(showValues ? data.swellHeightFt : nil, unit: "ft")
+                    }
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    readingLine("Period", value: showValues ? data.swellPeriodS : nil, unit: "s")
-                    readingLine("Direction", value: showValues ? data.swellDirection : nil)
+                Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 2) {
+                    GridRow {
+                        readingLabel("Period:")
+                        readingValue(showValues ? data.swellPeriodS : nil, unit: "s")
+                    }
+                    GridRow {
+                        readingLabel("Direction:")
+                        readingValue(showValues ? data.swellDirection : nil)
+                    }
                 }
             }
             if let staleText = data.staleDisplayString {
@@ -199,21 +211,22 @@ struct FavoriteBuoyReadings: View {
         }
     }
 
+    private func readingLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+    }
+
     @ViewBuilder
-    private func readingLine(_ label: String, value: String?, unit: String? = nil) -> some View {
-        HStack(spacing: 4) {
-            Text("\(label):")
+    private func readingValue(_ value: String?, unit: String? = nil) -> some View {
+        if let value = value, value != "N/A" {
+            Text(unit != nil ? "\(value) \(unit!)" : value)
                 .font(.caption)
-                .foregroundStyle(.secondary)
-            if let value = value, value != "N/A" {
-                Text(unit != nil ? "\(value) \(unit!)" : value)
-                    .font(.caption)
-                    .fontWeight(.medium)
-            } else {
-                Text("N/A")
-                    .font(.caption)
-                    .fontWeight(.medium)
-            }
+                .fontWeight(.medium)
+        } else {
+            Text("N/A")
+                .font(.caption)
+                .fontWeight(.medium)
         }
     }
 }

@@ -171,14 +171,26 @@ struct BuoyReadingGrid: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 24) {
-                VStack(alignment: .leading, spacing: 2) {
-                    readingLine("Wave Height", value: data.sigWaveHeightFt, unit: "ft")
-                    readingLine("Swell Height", value: data.swellHeightFt, unit: "ft")
+            HStack(spacing: 20) {
+                Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 2) {
+                    GridRow {
+                        readingLabel("Wave Height:")
+                        readingValue(data.sigWaveHeightFt, unit: "ft")
+                    }
+                    GridRow {
+                        readingLabel("Swell Height:")
+                        readingValue(data.swellHeightFt, unit: "ft")
+                    }
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    readingLine("Period", value: data.swellPeriodS, unit: "s")
-                    readingLine("Direction", value: data.swellDirection)
+                Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 2) {
+                    GridRow {
+                        readingLabel("Period:")
+                        readingValue(data.swellPeriodS, unit: "s")
+                    }
+                    GridRow {
+                        readingLabel("Direction:")
+                        readingValue(data.swellDirection)
+                    }
                 }
             }
             if let updated = data.lastUpdated {
@@ -189,21 +201,22 @@ struct BuoyReadingGrid: View {
         }
     }
 
+    private func readingLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+    }
+
     @ViewBuilder
-    private func readingLine(_ label: String, value: String?, unit: String? = nil) -> some View {
-        HStack(spacing: 4) {
-            Text("\(label):")
+    private func readingValue(_ value: String?, unit: String? = nil) -> some View {
+        if let value = value, value != "N/A" {
+            Text(unit != nil ? "\(value) \(unit!)" : value)
+                .font(.subheadline)
+                .fontWeight(.medium)
+        } else {
+            Text("N/A")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            if let value = value, value != "N/A" {
-                Text(unit != nil ? "\(value) \(unit!)" : value)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-            } else {
-                Text("N/A")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
         }
     }
 }
