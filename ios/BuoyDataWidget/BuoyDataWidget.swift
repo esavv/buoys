@@ -10,13 +10,18 @@ import SwiftUI
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), waveHeight: "—", swellHeight: "—", swellPeriod: "—", swellDirection: "—", lastUpdated: "—", buoyID: "—", errorMessage: nil)
+        SimpleEntry(date: Date(), waveHeight: "—", swellHeight: "—", swellPeriod: "—", swellDirection: "—", lastUpdated: "—", buoyID: "44065", errorMessage: nil)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
         let sharedDefaults = UserDefaults(suiteName: APIConfig.appGroupID)
-        let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy") ?? "44065"
-        // Call the shared fetch function (this example uses async/await)
+        let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy")
+
+        guard let buoyID else {
+            completion(SimpleEntry(date: Date(), waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, errorMessage: nil))
+            return
+        }
+
         Task {
             let (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, errorMessage) = await fetchBuoyData(for: buoyID)
             let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellHeight: swellHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, lastUpdated: lastUpdated, buoyID: buoyID, errorMessage: errorMessage)
@@ -26,16 +31,21 @@ struct Provider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let sharedDefaults = UserDefaults(suiteName: APIConfig.appGroupID)
-        let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy") ?? "44065"
-        // Fetch the data for the widget
+        let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy")
+
+        guard let buoyID else {
+            let entry = SimpleEntry(date: Date(), waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, errorMessage: nil)
+            let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
+            completion(Timeline(entries: [entry], policy: .after(refreshDate)))
+            return
+        }
+
         Task {
             let (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, errorMessage) = await fetchBuoyData(for: buoyID)
 
-            // Create a single entry for the current time
             let currentDate = Date()
             let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellHeight: swellHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, lastUpdated: lastUpdated, buoyID: buoyID, errorMessage: errorMessage)
 
-            // Set the refresh policy to update hourly
             let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: currentDate)!
             let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
 
@@ -83,7 +93,7 @@ struct SimpleEntry: TimelineEntry {
     let swellPeriod: String
     let swellDirection: String
     let lastUpdated: String
-    let buoyID: String
+    let buoyID: String?
     let errorMessage: String?
 }
 
@@ -110,8 +120,13 @@ struct BuoyDataWidgetEntryView : View {
     }
 
     var body: some View {
+        if entry.buoyID == nil {
+            Text("Tap to\nAdd Buoy")
+                .font(.system(size: 11))
+                .multilineTextAlignment(.center)
+        } else {
         VStack(alignment: .center, spacing: 1) {
-            Text("\(entry.buoyID)")
+            Text("\(entry.buoyID!)")
                 .font(.system(size: 9))
             
             if entry.errorMessage != nil {
@@ -137,6 +152,7 @@ struct BuoyDataWidgetEntryView : View {
                 Text(formatTime(entry.lastUpdated))
                     .font(.system(size: 9))
             }
+        }
         }
     }
 }
@@ -166,4 +182,5 @@ struct BuoyDataWidget: Widget {
 } timeline: {
     SimpleEntry(date: .now, waveHeight: "5.2", swellHeight: "4.8", swellPeriod: "7", swellDirection: "ESE", lastUpdated: "3:45 pm", buoyID: "44065", errorMessage: nil)
     SimpleEntry(date: .now, waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: "44065", errorMessage: "Network error")
+    SimpleEntry(date: .now, waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, errorMessage: nil)
 }
