@@ -92,7 +92,7 @@ struct FavoritesView: View {
             }
             .foregroundStyle(Color(.systemGray))
             .frame(maxWidth: .infinity, minHeight: 60)
-            .background(Color(.systemBackground))
+            .background(Color(.secondarySystemGroupedBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
         }
@@ -140,7 +140,7 @@ struct FavoriteBuoyRow: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
         .onAppear {
