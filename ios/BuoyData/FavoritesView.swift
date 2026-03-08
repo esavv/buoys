@@ -63,6 +63,16 @@ struct FavoritesView: View {
                 }
             }
             .environment(\.editMode, $editMode)
+            .onDisappear {
+                editMode = .inactive
+            }
+            .onChange(of: store.favorites.isEmpty) {
+                if store.favorites.isEmpty {
+                    Task { @MainActor in
+                        editMode = .inactive
+                    }
+                }
+            }
             .sheet(isPresented: $showingAddSheet) {
                 AddBuoySheet(selectedTab: $selectedTab)
                     .presentationDetents([.fraction(0.4)])
