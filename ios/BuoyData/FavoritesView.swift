@@ -173,19 +173,25 @@ struct FavoriteBuoyRow: View {
 struct FavoriteBuoyReadings: View {
     let data: BuoyResponse
 
+    private var showValues: Bool { data.isRecent }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 24) {
                 VStack(alignment: .leading, spacing: 2) {
-                    readingLine("Wave Height", value: data.sigWaveHeightFt, unit: "ft")
-                    readingLine("Swell Height", value: data.swellHeightFt, unit: "ft")
+                    readingLine("Wave Height", value: showValues ? data.sigWaveHeightFt : nil, unit: "ft")
+                    readingLine("Swell Height", value: showValues ? data.swellHeightFt : nil, unit: "ft")
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    readingLine("Period", value: data.swellPeriodS, unit: "s")
-                    readingLine("Direction", value: data.swellDirection)
+                    readingLine("Period", value: showValues ? data.swellPeriodS : nil, unit: "s")
+                    readingLine("Direction", value: showValues ? data.swellDirection : nil)
                 }
             }
-            if let updated = data.lastUpdated {
+            if let staleText = data.staleDisplayString {
+                Text(staleText)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            } else if let updated = data.lastUpdated {
                 Text("Updated \(updated)")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -206,7 +212,7 @@ struct FavoriteBuoyReadings: View {
             } else {
                 Text("N/A")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .fontWeight(.medium)
             }
         }
     }

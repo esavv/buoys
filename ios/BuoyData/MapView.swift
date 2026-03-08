@@ -94,7 +94,14 @@ struct StationCard: View {
                 }
                 .padding(.vertical, 8)
             } else if let data = buoyData, data.status == "success" {
-                BuoyReadingGrid(data: data)
+                if data.isRecent {
+                    BuoyReadingGrid(data: data)
+                } else if let staleText = data.staleDisplayString {
+                    Text(staleText)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, 8)
+                }
             } else {
                 Text("No data available")
                     .font(.subheadline)

@@ -10,7 +10,7 @@ import SwiftUI
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), waveHeight: "—", swellHeight: "—", swellPeriod: "—", swellDirection: "—", lastUpdated: "—", buoyID: "44065", errorMessage: nil)
+        SimpleEntry(date: Date(), waveHeight: "—", swellHeight: "—", swellPeriod: "—", swellDirection: "—", lastUpdated: "—", buoyID: "44065", isStale: false, errorMessage: nil)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
@@ -18,13 +18,13 @@ struct Provider: TimelineProvider {
         let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy")
 
         guard let buoyID else {
-            completion(SimpleEntry(date: Date(), waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, errorMessage: nil))
+            completion(SimpleEntry(date: Date(), waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, isStale: false, errorMessage: nil))
             return
         }
 
         Task {
-            let (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, errorMessage) = await fetchBuoyData(for: buoyID)
-            let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellHeight: swellHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, lastUpdated: lastUpdated, buoyID: buoyID, errorMessage: errorMessage)
+            let (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, isStale, errorMessage) = await fetchBuoyData(for: buoyID)
+            let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellHeight: swellHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, lastUpdated: lastUpdated, buoyID: buoyID, isStale: isStale, errorMessage: errorMessage)
             completion(entry)
         }
     }
@@ -34,17 +34,17 @@ struct Provider: TimelineProvider {
         let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy")
 
         guard let buoyID else {
-            let entry = SimpleEntry(date: Date(), waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, errorMessage: nil)
+            let entry = SimpleEntry(date: Date(), waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, isStale: false, errorMessage: nil)
             let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
             completion(Timeline(entries: [entry], policy: .after(refreshDate)))
             return
         }
 
         Task {
-            let (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, errorMessage) = await fetchBuoyData(for: buoyID)
+            let (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, isStale, errorMessage) = await fetchBuoyData(for: buoyID)
 
             let currentDate = Date()
-            let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellHeight: swellHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, lastUpdated: lastUpdated, buoyID: buoyID, errorMessage: errorMessage)
+            let entry = SimpleEntry(date: Date(), waveHeight: waveHeight, swellHeight: swellHeight, swellPeriod: swellPeriod, swellDirection: swellDirection, lastUpdated: lastUpdated, buoyID: buoyID, isStale: isStale, errorMessage: errorMessage)
 
             let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: currentDate)!
             let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
@@ -53,13 +53,11 @@ struct Provider: TimelineProvider {
         }
     }
 
-    // Fetch buoy data from the API
-    // Returns (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, errorMessage)
-    func fetchBuoyData(for buoyID: String) async -> (String, String, String, String, String, String?) {
-        // return ("3.6", "3.3", "5.9", "WNW", "3:45 pm EST", nil) // hardcoded for testing
+    // Returns (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, isStale, errorMessage)
+    func fetchBuoyData(for buoyID: String) async -> (String, String, String, String, String, Bool, String?) {
         guard let url = APIConfig.buoyURL(for: buoyID) else {
             print("Widget error: Invalid URL")
-            return ("", "", "", "", "", "Invalid URL")
+            return ("", "", "", "", "", false, "Invalid URL")
         }
 
         do {
@@ -73,15 +71,16 @@ struct Provider: TimelineProvider {
                 let swellPeriod = buoyResponse.swellPeriodS ?? "N/A"
                 let swellDirection = buoyResponse.swellDirection ?? "N/A"
                 let lastUpdated = buoyResponse.lastUpdated ?? "N/A"
-                return (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, nil)
+                let isStale = !buoyResponse.isRecent
+                return (waveHeight, swellHeight, swellPeriod, swellDirection, lastUpdated, isStale, nil)
             } else {
                 let errorMsg = buoyResponse.errorMsg ?? "Unknown API error"
                 print("Widget API error: \(errorMsg)")
-                return ("", "", "", "", "", errorMsg)
+                return ("", "", "", "", "", false, errorMsg)
             }
         } catch {
             print("Widget fetch error: \(error.localizedDescription)")
-            return ("", "", "", "", "", error.localizedDescription)
+            return ("", "", "", "", "", false, error.localizedDescription)
         }
     }
 }
@@ -94,6 +93,7 @@ struct SimpleEntry: TimelineEntry {
     let swellDirection: String
     let lastUpdated: String
     let buoyID: String?
+    let isStale: Bool
     let errorMessage: String?
 }
 
@@ -133,6 +133,12 @@ struct BuoyDataWidgetEntryView : View {
                 Spacer().frame(height: 6)
                 Text("Server\nError")
                     .font(.system(size: 12))
+                    .multilineTextAlignment(.center)
+                Spacer()
+            } else if entry.isStale {
+                Spacer().frame(height: 1)
+                Text("No\nRecent\nData")
+                    .font(.system(size: 10))
                     .multilineTextAlignment(.center)
                 Spacer()
             } else {
@@ -180,7 +186,8 @@ struct BuoyDataWidget: Widget {
 #Preview(as: .accessoryCircular) {
     BuoyDataWidget()
 } timeline: {
-    SimpleEntry(date: .now, waveHeight: "5.2", swellHeight: "4.8", swellPeriod: "7", swellDirection: "ESE", lastUpdated: "3:45 pm", buoyID: "44065", errorMessage: nil)
-    SimpleEntry(date: .now, waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: "44065", errorMessage: "Network error")
-    SimpleEntry(date: .now, waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, errorMessage: nil)
+    SimpleEntry(date: .now, waveHeight: "5.2", swellHeight: "4.8", swellPeriod: "7", swellDirection: "ESE", lastUpdated: "3:45 pm", buoyID: "44065", isStale: false, errorMessage: nil)
+    SimpleEntry(date: .now, waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: "44065", isStale: true, errorMessage: nil)
+    SimpleEntry(date: .now, waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: "44065", isStale: false, errorMessage: "Network error")
+    SimpleEntry(date: .now, waveHeight: "", swellHeight: "", swellPeriod: "", swellDirection: "", lastUpdated: "", buoyID: nil, isStale: false, errorMessage: nil)
 }
