@@ -14,7 +14,7 @@ struct Provider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let sharedDefaults = UserDefaults(suiteName: "group.BuoyData")
+        let sharedDefaults = UserDefaults(suiteName: APIConfig.appGroupID)
         let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy") ?? "44065"
         // Call the shared fetch function (this example uses async/await)
         Task {
@@ -25,7 +25,7 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        let sharedDefaults = UserDefaults(suiteName: "group.BuoyData")
+        let sharedDefaults = UserDefaults(suiteName: APIConfig.appGroupID)
         let buoyID = sharedDefaults?.string(forKey: "favoriteBuoy") ?? "44065"
         // Fetch the data for the widget
         Task {

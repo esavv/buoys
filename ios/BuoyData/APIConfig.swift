@@ -9,6 +9,14 @@
 import Foundation
 
 enum APIConfig {
+    static let appGroupID: String = {
+        #if DEBUG
+        return "group.BuoyData.dev"
+        #else
+        return "group.BuoyData"
+        #endif
+    }()
+
     static let baseURL = "https://api.buoy-data.com"
     
     static func buoyURL(for buoyID: String) -> URL? {

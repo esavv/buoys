@@ -14,7 +14,7 @@ struct FavoriteBuoy: Codable, Identifiable, Equatable {
 
 @Observable
 class FavoritesStore {
-    private static let suiteName = "group.BuoyData"
+    private static let suiteName = APIConfig.appGroupID
     private static let key = "favoriteStations"
     private static let legacyKey = "favoriteBuoy"
 

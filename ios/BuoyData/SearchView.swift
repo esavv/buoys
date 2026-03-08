@@ -82,7 +82,7 @@ struct SearchView: View {
             .padding(.top, 8)
         }
         .onAppear {
-            let sharedDefaults = UserDefaults(suiteName: "group.BuoyData")
+            let sharedDefaults = UserDefaults(suiteName: APIConfig.appGroupID)
             buoyID = sharedDefaults?.string(forKey: "favoriteBuoy") ?? "44065"
             fetchBuoyData(for: buoyID)
         }
@@ -139,7 +139,7 @@ struct SearchView: View {
             return
         }
         
-        let sharedDefaults = UserDefaults(suiteName: "group.BuoyData")
+        let sharedDefaults = UserDefaults(suiteName: APIConfig.appGroupID)
         sharedDefaults?.set(newBuoyID, forKey: "favoriteBuoy")
         print("Favorite buoy updated to \(newBuoyID)")
         
