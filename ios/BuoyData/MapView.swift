@@ -68,7 +68,7 @@ struct StationCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(station.name)
@@ -86,9 +86,6 @@ struct StationCard: View {
                 }
             }
 
-            Divider()
-                .padding(.vertical, 10)
-
             if isLoading {
                 HStack {
                     Spacer()
@@ -104,9 +101,6 @@ struct StationCard: View {
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 8)
             }
-
-            Divider()
-                .padding(.vertical, 10)
 
             HStack {
                 Spacer()
@@ -169,22 +163,31 @@ struct BuoyReadingGrid: View {
     let data: BuoyResponse
 
     var body: some View {
-        Grid(alignment: .leading, verticalSpacing: 4) {
-            readingRow("Wave Height", value: data.sigWaveHeightFt, unit: "ft")
-            readingRow("Swell Height", value: data.swellHeightFt, unit: "ft")
-            readingRow("Swell Period", value: data.swellPeriodS, unit: "s")
-            readingRow("Swell Direction", value: data.swellDirection)
-            readingRow("Updated", value: data.lastUpdated)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 2) {
+                    readingLine("Wave Height", value: data.sigWaveHeightFt, unit: "ft")
+                    readingLine("Swell Height", value: data.swellHeightFt, unit: "ft")
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    readingLine("Period", value: data.swellPeriodS, unit: "s")
+                    readingLine("Direction", value: data.swellDirection)
+                }
+            }
+            if let updated = data.lastUpdated {
+                Text("Updated \(updated)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
     @ViewBuilder
-    private func readingRow(_ label: String, value: String?, unit: String? = nil) -> some View {
-        GridRow {
-            Text(label)
+    private func readingLine(_ label: String, value: String?, unit: String? = nil) -> some View {
+        HStack(spacing: 4) {
+            Text("\(label):")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .gridColumnAlignment(.trailing)
             if let value = value, value != "N/A" {
                 Text(unit != nil ? "\(value) \(unit!)" : value)
                     .font(.subheadline)
