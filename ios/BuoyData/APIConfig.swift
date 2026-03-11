@@ -58,6 +58,8 @@ struct BuoyResponse: Codable {
     let swellHeightFt: String?
     let swellPeriodS: String?
     let swellDirection: String?
+    let waterTempC: String?
+    let meanWaveDirectionDeg: String?
     let errorMsg: String?
     
     enum CodingKeys: String, CodingKey {
@@ -68,6 +70,8 @@ struct BuoyResponse: Codable {
         case swellHeightFt = "swell_height_ft"
         case swellPeriodS = "swell_period_s"
         case swellDirection = "swell_direction"
+        case waterTempC = "water_temp_c"
+        case meanWaveDirectionDeg = "mean_wave_direction_deg"
         case errorMsg = "error_msg"
     }
 
@@ -97,6 +101,13 @@ struct BuoyResponse: Codable {
         formatter.amSymbol = "am"
         formatter.pmSymbol = "pm"
         return "No data since \(formatter.string(from: date))"
+    }
+
+    /// Water temperature in Fahrenheit for display; "N/A" when missing or invalid.
+    var waterTempFDisplay: String {
+        guard let raw = waterTempC, raw != "N/A", let c = Double(raw) else { return "N/A" }
+        let f = c * 9 / 5 + 32
+        return String(format: "%.1f", f)
     }
 }
 

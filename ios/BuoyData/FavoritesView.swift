@@ -187,15 +187,23 @@ struct FavoriteBuoyReadings: View {
                         readingLabel("Swell Height:")
                         readingValue(showValues ? data.swellHeightFt : nil, unit: "ft")
                     }
+                    GridRow {
+                        readingLabel("Water Temp:")
+                        readingValue(showValues ? data.waterTempFDisplay : nil, unit: "°F")
+                    }
                 }
                 Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 2) {
                     GridRow {
-                        readingLabel("Period:")
+                        readingLabel("Swell Period:")
                         readingValue(showValues ? data.swellPeriodS : nil, unit: "s")
                     }
                     GridRow {
-                        readingLabel("Direction:")
+                        readingLabel("Swell Direction:")
                         readingValue(showValues ? data.swellDirection : nil)
+                    }
+                    GridRow {
+                        readingLabel("Wave Direction:")
+                        readingValue(showValues ? data.meanWaveDirectionDeg.flatMap { $0 != "N/A" ? "\($0)°" : nil } : nil)
                     }
                 }
             }

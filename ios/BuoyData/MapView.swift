@@ -181,15 +181,23 @@ struct BuoyReadingGrid: View {
                         readingLabel("Swell Height:")
                         readingValue(data.swellHeightFt, unit: "ft")
                     }
+                    GridRow {
+                        readingLabel("Water Temp:")
+                        readingValue(data.waterTempFDisplay, unit: "°F")
+                    }
                 }
                 Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 2) {
                     GridRow {
-                        readingLabel("Period:")
+                        readingLabel("Swell Period:")
                         readingValue(data.swellPeriodS, unit: "s")
                     }
                     GridRow {
-                        readingLabel("Direction:")
+                        readingLabel("Swell Direction:")
                         readingValue(data.swellDirection)
+                    }
+                    GridRow {
+                        readingLabel("Wave Direction:")
+                        readingValue(data.meanWaveDirectionDeg.flatMap { $0 != "N/A" ? "\($0)°" : nil })
                     }
                 }
             }
