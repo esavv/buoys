@@ -1,0 +1,10 @@
+This app's primary feature is a lock screen widget that displays real-time NOAA buoy data.
+
+To test the widget:
+1. Open the app and note the default buoy station (44065). You can change this to any valid NOAA station ID.
+2. Close the app.
+3. To customize your lock screen, either long press the lock screen and tap "Customize", or go to Settings > Wallpaper > Customize.
+4. Tap "Add Widgets", search for "BuoyData", and add the circular widget.
+5. The widget will display live swell data (wave height, swell height, period, and direction) for the selected buoy station.
+
+The app requires an internet connection to fetch data from NOAA's National Data Buoy Center.

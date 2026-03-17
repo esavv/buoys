@@ -1,0 +1,21 @@
+BuoyData puts live ocean conditions on your lock screen with a compact circular widget. Check the swell at a glance, without unlocking your phone.
+
+Get real-time wave height, swell height, swell period, and swell direction from any NOAA buoy station, updated automatically throughout the day.
+
+Perfect for surfers, anglers, boaters, and anyone who needs to real-time ocean conditions.
+
+FEATURES
+
+- Lock screen widget showing live swell data in a compact format
+- Displays significant wave height, swell height, swell period, and swell direction
+- Data sourced directly from NOAA's National Data Buoy Center (NDBC)
+- Choose from over 1,400 buoy stations across the US coastline
+
+GETTING STARTED
+
+1. Open BuoyData and enter your preferred NOAA buoy station ID (find yours at ndbc.noaa.gov)
+2. To customize your lock screen, either long press the lock screen and tap "Customize", or go to Settings > Wallpaper > Customize
+3. Tap "Add Widgets" and search for BuoyData
+4. Select the widget — that's it!
+
+Your buoy data is now always visible on your lock screen.
