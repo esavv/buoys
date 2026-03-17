@@ -102,9 +102,14 @@ struct FavoritesView: View {
 struct FavoriteBuoyRow: View {
     let buoy: FavoriteBuoy
     let isWidgetBuoy: Bool
+    @Environment(\.editMode) private var editMode
 
     @State private var buoyData: BuoyResponse? = nil
     @State private var isLoading = true
+    
+    private var isEditing: Bool {
+        editMode?.wrappedValue == .active
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -132,7 +137,7 @@ struct FavoriteBuoyRow: View {
                 ProgressView()
                     .padding(.vertical, 4)
             } else if let data = buoyData, data.status == "success" {
-                FavoriteBuoyReadings(data: data)
+                FavoriteBuoyReadings(data: data, isEditing: isEditing)
             } else {
                 Text("No data available")
                     .font(.subheadline)
@@ -172,13 +177,14 @@ struct FavoriteBuoyRow: View {
 
 struct FavoriteBuoyReadings: View {
     let data: BuoyResponse
+    var isEditing: Bool = false
 
     private var showValues: Bool { data.isRecent }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 20) {
-                Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 2) {
+            HStack(spacing: isEditing ? 5 : 20) {
+                Grid(alignment: .leading, horizontalSpacing: isEditing ? 3 : 6, verticalSpacing: 2) {
                     GridRow {
                         readingLabel("Wave Height:")
                         readingValue(showValues ? data.sigWaveHeightFt : nil, unit: "ft")
@@ -192,7 +198,7 @@ struct FavoriteBuoyReadings: View {
                         readingValue(showValues ? data.waterTempFDisplay : nil, unit: "°F")
                     }
                 }
-                Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 2) {
+                Grid(alignment: .leading, horizontalSpacing: isEditing ? 3 : 6, verticalSpacing: 2) {
                     GridRow {
                         readingLabel("Swell Period:")
                         readingValue(showValues ? data.swellPeriodS : nil, unit: "s")
@@ -223,6 +229,8 @@ struct FavoriteBuoyReadings: View {
         Text(text)
             .font(.caption)
             .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .truncationMode(.tail)
     }
 
     @ViewBuilder
