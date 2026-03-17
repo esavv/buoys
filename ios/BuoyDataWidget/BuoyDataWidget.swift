@@ -177,8 +177,8 @@ struct BuoyDataWidget: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("BuoyDataWidget")
-        .description("Display live swell data from your favorite buoy.")
+        .configurationDisplayName("Buoys Widget")
+        .description("Live swell data from your favorite buoy at a glance.")
         .supportedFamilies([.accessoryCircular]) // Ensure only lock screen widget type
     }
 }
