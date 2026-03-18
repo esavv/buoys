@@ -1,0 +1,4 @@
+Thanks for using Buoys! New in this update:
+• Favorites: Add and track multiple buoys in one place; your first favorite powers the lock screen widget
+• Map: Browse every available station on the map and add buoys to Favorites with a tap
+• New readings: Mean wave direction and water temperature (when available)

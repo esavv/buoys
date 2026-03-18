@@ -1,1 +1,1 @@
-Real-time NOAA buoy data on your iPhone lock screen. Track wave height, swell period, swell direction, and more from any of 1,400+ stations.
+Real-time buoy data on your lock screen. Track wave height, swell period, swell direction, and more from any of 1,400+ stations.

@@ -1,21 +1,24 @@
-BuoyData puts live ocean conditions on your lock screen with a compact circular widget. Check the swell at a glance, without unlocking your phone.
+Buoys puts live ocean conditions on your lock screen with a compact widget. Check the swell at a glance without unlocking your phone.
 
-Get real-time wave height, swell height, swell period, and swell direction from any NOAA buoy station, updated automatically throughout the day.
+Get real-time swell conditions from any NOAA buoy station, updated automatically throughout the day.
 
 Perfect for surfers, anglers, boaters, and anyone who needs to real-time ocean conditions.
 
 FEATURES
 
-- Lock screen widget showing live swell data in a compact format
-- Displays significant wave height, swell height, swell period, and swell direction
+- Create a list of your favorite buoys and see conditions for each
+- Metrics include significant wave height, swell height, swell period, swell direction, mean wave direction, and water temperature
+- Lock screen widget with live swell data for the 1st buoy in your Favorites
+- Map of active stations globally
+- Add buoys to Favorites from the map, or by station ID (find IDs at ndbc.noaa.gov)
 - Data sourced directly from NOAA's National Data Buoy Center (NDBC)
-- Choose from over 1,400 buoy stations across the US coastline
+- Choose from over 1,400 buoy stations
 
 GETTING STARTED
 
-1. Open BuoyData and enter your preferred NOAA buoy station ID (find yours at ndbc.noaa.gov)
-2. To customize your lock screen, either long press the lock screen and tap "Customize", or go to Settings > Wallpaper > Customize
-3. Tap "Add Widgets" and search for BuoyData
-4. Select the widget — that's it!
+1. Open Buoys and add at least one buoy to Favorites (by ID or from the Map). Order the list so your preferred widget buoy is first.
+2. To add the widget: long press the lock screen and tap "Customize", or go to Settings > Wallpaper > Customize
+3. Tap "Add Widgets" and search for Buoys
+4. Select the widget — that's it! The widget shows data for the first buoy in your Favorites
 
-Your buoy data is now always visible on your lock screen.
+Your go-to buoy stays visible on the lock screen.
