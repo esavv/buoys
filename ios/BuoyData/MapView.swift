@@ -15,6 +15,7 @@ struct MapView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             BuoyMapView(stations: stations, selectedStation: $selectedStation)
+                .ignoresSafeArea(.container, edges: .top)
 
             if let station = selectedStation {
                 StationCard(station: station) {
