@@ -13,9 +13,7 @@ struct FavoritesView: View {
     @Binding var selectedTab: AppTab
     @State private var showingAddSheet = false
     @State private var editMode: EditMode = .inactive
-    @Namespace private var addBuoyComposerNamespace
 
-    private let addBuoyComposerId = "add-buoy-composer"
     private let addBuoyComposerAnimation = Animation.spring(response: 0.36, dampingFraction: 0.86)
 
     var body: some View {
@@ -63,8 +61,6 @@ struct FavoritesView: View {
 
                     AddBuoySheet(
                         selectedTab: $selectedTab,
-                        animationNamespace: addBuoyComposerNamespace,
-                        animationId: addBuoyComposerId,
                         onDismiss: dismissAddComposer
                     )
                 }
@@ -118,7 +114,6 @@ struct FavoritesView: View {
             .background(Color(.secondarySystemGroupedBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
-            .matchedGeometryEffect(id: addBuoyComposerId, in: addBuoyComposerNamespace)
         }
     }
 
@@ -282,8 +277,6 @@ struct FavoriteBuoyReadings: View {
 struct AddBuoySheet: View {
     @Environment(FavoritesStore.self) private var store
     @Binding var selectedTab: AppTab
-    let animationNamespace: Namespace.ID
-    let animationId: String
     let onDismiss: () -> Void
 
     @State private var buoyId = ""
@@ -367,7 +360,6 @@ struct AddBuoySheet: View {
                     .strokeBorder(Color.white.opacity(0.18))
             }
             .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
-            .matchedGeometryEffect(id: animationId, in: animationNamespace)
             .padding(.horizontal, 16)
             .padding(.bottom, 8)
         }
