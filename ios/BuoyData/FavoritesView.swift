@@ -75,7 +75,9 @@ struct FavoritesView: View {
             }
             .sheet(isPresented: $showingAddSheet) {
                 AddBuoySheet(selectedTab: $selectedTab)
-                    .presentationDetents([.fraction(0.4)])
+                    .presentationDetents([.height(128)])
+                    .presentationDragIndicator(.hidden)
+                    .presentationBackground(.clear)
             }
         }
     }
@@ -255,66 +257,102 @@ struct AddBuoySheet: View {
     @State private var buoyId = ""
     @State private var isValidating = false
     @State private var errorMessage: String? = nil
+    @FocusState private var isBuoyIdFocused: Bool
+
+    private var trimmedBuoyId: String {
+        buoyId.trimmingCharacters(in: .whitespaces)
+    }
+
+    private var canSubmit: Bool {
+        !trimmedBuoyId.isEmpty && !isValidating
+    }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Enter a Buoy ID")
-                    .font(.subheadline)
-
-                TextField("44091", text: $buoyId)
-                    .textFieldStyle(.roundedBorder)
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 10) {
+                TextField("Enter a buoy id", text: $buoyId)
+                    .font(.body)
+                    .textFieldStyle(.plain)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                    .frame(maxWidth: 240)
+                    .submitLabel(.done)
+                    .focused($isBuoyIdFocused)
+                    .onSubmit {
+                        if canSubmit {
+                            validateAndAdd()
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.top, 14)
 
                 if let error = errorMessage {
                     Text(error)
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundStyle(.red)
+                        .padding(.horizontal, 14)
                 }
 
-                Button {
-                    validateAndAdd()
-                } label: {
-                    if isValidating {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Text("Add")
-                            .frame(maxWidth: .infinity)
+                HStack(spacing: 10) {
+                    Button {
+                        dismiss()
+                        selectedTab = .map
+                    } label: {
+                        Text("Find on Map")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .frame(minWidth: 140)
+                            .padding(.vertical, 9)
+                            .padding(.horizontal, 16)
+                            .background(Color(.tertiarySystemFill))
+                            .clipShape(Capsule())
                     }
+
+                    Spacer()
+
+                    Button {
+                        validateAndAdd()
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(canSubmit ? Color(red: 0.91, green: 0.38, blue: 0.25) : Color(.systemGray4))
+                            if isValidating {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: "arrow.up")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .frame(width: 40, height: 40)
+                    }
+                    .disabled(!canSubmit)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(buoyId.trimmingCharacters(in: .whitespaces).isEmpty || isValidating)
-                .frame(maxWidth: 240)
-
-                Text("or")
-                    .font(.subheadline)
-
-                Button {
-                    dismiss()
-                    selectedTab = .map
-                } label: {
-                    Text("Select From Map")
-                        .font(.subheadline)
-                }
-
-                Spacer()
+                .buttonStyle(.plain)
+                .padding(.horizontal, 10)
+                .padding(.bottom, 10)
             }
-            .padding(.top, 24)
-            .navigationTitle("Add Buoy")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.18))
+            }
+            .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .onAppear {
+            DispatchQueue.main.async {
+                isBuoyIdFocused = true
             }
         }
     }
 
     private func validateAndAdd() {
-        let trimmedId = buoyId.trimmingCharacters(in: .whitespaces)
+        let trimmedId = trimmedBuoyId
         errorMessage = nil
 
         if store.contains(trimmedId) {
