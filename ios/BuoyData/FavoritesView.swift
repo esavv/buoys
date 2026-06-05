@@ -448,7 +448,7 @@ struct AddBuoySheet: View {
         isValidating = false
         isBuoyIdFocused = true
 
-        withAnimation(.linear(duration: 0.4)) {
+        withAnimation(.linear(duration: 0.35)) {
             errorShakeTrigger += 1
         }
     }
