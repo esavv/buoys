@@ -296,6 +296,14 @@ struct AddBuoySheet: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {
+                if let error = errorMessage {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .padding(.horizontal, 14)
+                        .padding(.top, 14)
+                }
+
                 BuoyIdTextField(
                     placeholder: "Enter a buoy ID (e.g. 44091)",
                     text: $buoyId,
@@ -305,14 +313,7 @@ struct AddBuoySheet: View {
                     .frame(height: 28)
                     .modifier(ShakeEffect(trigger: errorShakeTrigger))
                     .padding(.horizontal, 14)
-                    .padding(.top, 14)
-
-                if let error = errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                        .padding(.horizontal, 14)
-                }
+                    .padding(.top, errorMessage == nil ? 14 : 0)
 
                 HStack(spacing: 10) {
                     Button {
@@ -450,7 +451,7 @@ struct AddBuoySheet: View {
 
 private struct ShakeEffect: GeometryEffect {
     var trigger: CGFloat
-    var travelDistance: CGFloat = 8
+    var travelDistance: CGFloat = 5
     var shakesPerTrigger: CGFloat = 3
 
     var animatableData: CGFloat {
