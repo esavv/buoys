@@ -310,7 +310,6 @@ struct AddBuoySheet: View {
                         Text("Find on Map")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.primary)
-                            .frame(minWidth: 140)
                             .padding(.vertical, 9)
                             .padding(.horizontal, 16)
                             .background(Color(.tertiarySystemFill))
@@ -322,20 +321,21 @@ struct AddBuoySheet: View {
                     Button {
                         validateAndAdd()
                     } label: {
-                        ZStack {
-                            Circle()
-                                .fill(canSubmit ? Color(red: 0.13, green: 0.31, blue: 0.58) : Color(.systemGray4))
-                            if isValidating {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Image(systemName: "arrow.up")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(.white)
-                            }
+                        if isValidating {
+                            ProgressView()
+                                .tint(.white)
+                                .frame(width: 34, height: 18)
+                        } else {
+                            Text("Add")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 34)
                         }
-                        .frame(width: 40, height: 40)
                     }
+                    .padding(.vertical, 9)
+                    .padding(.horizontal, 14)
+                    .background(canSubmit ? Color(red: 0.13, green: 0.31, blue: 0.58) : Color(.systemGray4))
+                    .clipShape(Capsule())
                     .disabled(!canSubmit)
                 }
                 .buttonStyle(.plain)
@@ -392,7 +392,7 @@ struct AddBuoySheet: View {
                         store.add(trimmedId)
                         onDismiss()
                     } else {
-                        errorMessage = "Station not found. Check the ID and try again."
+                        errorMessage = "Buoy not found. Check the ID and try again."
                         isValidating = false
                     }
                 }
