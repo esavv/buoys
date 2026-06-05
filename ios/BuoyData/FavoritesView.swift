@@ -319,6 +319,7 @@ struct AddBuoySheet: View {
                     Spacer()
 
                     Button {
+                        isBuoyIdFocused = true
                         validateAndAdd()
                     } label: {
                         if isValidating {
@@ -357,30 +358,34 @@ struct AddBuoySheet: View {
         .onAppear {
             isBuoyIdFocused = true
         }
+        .onChange(of: isBuoyIdFocused) {
+            if !isBuoyIdFocused && isValidating {
+                isBuoyIdFocused = true
+            }
+        }
     }
 
     private func validateAndAdd() {
         let trimmedId = trimmedBuoyId
         errorMessage = nil
+        isBuoyIdFocused = true
 
         if store.contains(trimmedId) {
-            errorMessage = "This station is already in your favorites."
+            showError("This station is already in your favorites.")
             return
         }
 
         isValidating = true
 
         guard let url = APIConfig.buoyURL(for: trimmedId) else {
-            errorMessage = "Invalid buoy ID."
-            isValidating = false
+            showError("Invalid buoy ID.")
             return
         }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
                 DispatchQueue.main.async {
-                    errorMessage = "Could not reach the server. Try again."
-                    isValidating = false
+                    showError("Could not reach the server. Try again.")
                 }
                 return
             }
@@ -392,17 +397,21 @@ struct AddBuoySheet: View {
                         store.add(trimmedId)
                         onDismiss()
                     } else {
-                        errorMessage = "Buoy not found. Check the ID and try again."
-                        isValidating = false
+                        showError("Buoy not found. Check the ID and try again.")
                     }
                 }
             } catch {
                 DispatchQueue.main.async {
-                    errorMessage = "Something went wrong. Try again."
-                    isValidating = false
+                    showError("Something went wrong. Try again.")
                 }
             }
         }.resume()
+    }
+
+    private func showError(_ message: String) {
+        errorMessage = message
+        isValidating = false
+        isBuoyIdFocused = true
     }
 }
 
