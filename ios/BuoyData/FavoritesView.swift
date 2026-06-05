@@ -123,6 +123,8 @@ struct FavoritesView: View {
     }
 
     private func dismissAddComposer() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+
         withAnimation(addBuoyComposerAnimation) {
             showingAddSheet = false
         }
