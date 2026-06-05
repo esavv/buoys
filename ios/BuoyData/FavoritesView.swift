@@ -303,6 +303,7 @@ struct AddBuoySheet: View {
                     onSubmit: submitIfPossible
                 )
                     .frame(height: 28)
+                    .modifier(ShakeEffect(trigger: errorShakeTrigger))
                     .padding(.horizontal, 14)
                     .padding(.top, 14)
 
@@ -371,7 +372,6 @@ struct AddBuoySheet: View {
                     .strokeBorder(Color.white.opacity(0.18))
             }
             .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
-            .modifier(ShakeEffect(trigger: errorShakeTrigger))
             .padding(.horizontal, 16)
             .padding(.bottom, 8)
         }
