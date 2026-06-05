@@ -15,33 +15,49 @@ struct FavoritesView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if store.favorites.isEmpty {
-                VStack {
-                    Spacer()
-                    addButton
-                        .padding(.horizontal)
-                    Spacer()
-                }
-                } else {
-                    List {
-                        ForEach(Array(store.favorites.enumerated()), id: \.element.id) { index, buoy in
-                            FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: index == 0)
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                        }
-                        .onDelete { store.remove(at: $0) }
-                        .onMove { store.move(from: $0, to: $1) }
-
-                        if editMode == .inactive {
+            ZStack(alignment: .bottom) {
+                Group {
+                    if store.favorites.isEmpty {
+                        VStack {
+                            Spacer()
                             addButton
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                .padding(.horizontal)
+                            Spacer()
                         }
+                    } else {
+                        List {
+                            ForEach(Array(store.favorites.enumerated()), id: \.element.id) { index, buoy in
+                                FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: index == 0)
+                                    .listRowSeparator(.hidden)
+                                    .listRowBackground(Color.clear)
+                                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            }
+                            .onDelete { store.remove(at: $0) }
+                            .onMove { store.move(from: $0, to: $1) }
+
+                            if editMode == .inactive {
+                                addButton
+                                    .listRowSeparator(.hidden)
+                                    .listRowBackground(Color.clear)
+                                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            }
+                        }
+                        .listStyle(.plain)
                     }
-                    .listStyle(.plain)
+                }
+
+                if showingAddSheet {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showingAddSheet = false
+                        }
+
+                    AddBuoySheet(
+                        selectedTab: $selectedTab,
+                        onDismiss: { showingAddSheet = false }
+                    )
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -72,12 +88,6 @@ struct FavoritesView: View {
                         editMode = .inactive
                     }
                 }
-            }
-            .sheet(isPresented: $showingAddSheet) {
-                AddBuoySheet(selectedTab: $selectedTab)
-                    .presentationDetents([.height(128)])
-                    .presentationDragIndicator(.hidden)
-                    .presentationBackground(.clear)
             }
         }
     }
@@ -251,8 +261,8 @@ struct FavoriteBuoyReadings: View {
 
 struct AddBuoySheet: View {
     @Environment(FavoritesStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
     @Binding var selectedTab: AppTab
+    let onDismiss: () -> Void
 
     @State private var buoyId = ""
     @State private var isValidating = false
@@ -270,7 +280,7 @@ struct AddBuoySheet: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {
-                TextField("Enter a buoy id", text: $buoyId)
+                TextField("Enter a buoy ID (e.g. 44091)", text: $buoyId)
                     .font(.body)
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled()
@@ -294,7 +304,7 @@ struct AddBuoySheet: View {
 
                 HStack(spacing: 10) {
                     Button {
-                        dismiss()
+                        onDismiss()
                         selectedTab = .map
                     } label: {
                         Text("Find on Map")
@@ -314,7 +324,7 @@ struct AddBuoySheet: View {
                     } label: {
                         ZStack {
                             Circle()
-                                .fill(canSubmit ? Color(red: 0.91, green: 0.38, blue: 0.25) : Color(.systemGray4))
+                                .fill(canSubmit ? Color(red: 0.13, green: 0.31, blue: 0.58) : Color(.systemGray4))
                             if isValidating {
                                 ProgressView()
                                     .tint(.white)
@@ -343,11 +353,9 @@ struct AddBuoySheet: View {
             .padding(.horizontal, 8)
             .padding(.bottom, 8)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .frame(maxWidth: .infinity)
         .onAppear {
-            DispatchQueue.main.async {
-                isBuoyIdFocused = true
-            }
+            isBuoyIdFocused = true
         }
     }
 
@@ -382,7 +390,7 @@ struct AddBuoySheet: View {
                 DispatchQueue.main.async {
                     if decoded.status == "success" {
                         store.add(trimmedId)
-                        dismiss()
+                        onDismiss()
                     } else {
                         errorMessage = "Station not found. Check the ID and try again."
                         isValidating = false
