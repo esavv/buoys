@@ -283,6 +283,7 @@ struct AddBuoySheet: View {
     @State private var isValidating = false
     @State private var errorMessage: String? = nil
     @State private var isBuoyIdFocused = false
+    @State private var errorShakeTrigger: CGFloat = 0
 
     private var trimmedBuoyId: String {
         buoyId.trimmingCharacters(in: .whitespaces)
@@ -370,6 +371,7 @@ struct AddBuoySheet: View {
                     .strokeBorder(Color.white.opacity(0.18))
             }
             .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
+            .modifier(ShakeEffect(trigger: errorShakeTrigger))
             .padding(.horizontal, 16)
             .padding(.bottom, 8)
         }
@@ -439,6 +441,30 @@ struct AddBuoySheet: View {
         errorMessage = message
         isValidating = false
         isBuoyIdFocused = true
+
+        withAnimation(.linear(duration: 0.3)) {
+            errorShakeTrigger += 1
+        }
+    }
+}
+
+private struct ShakeEffect: GeometryEffect {
+    var trigger: CGFloat
+    var travelDistance: CGFloat = 8
+    var shakesPerTrigger: CGFloat = 3
+
+    var animatableData: CGFloat {
+        get { trigger }
+        set { trigger = newValue }
+    }
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        ProjectionTransform(
+            CGAffineTransform(
+                translationX: travelDistance * sin(trigger * .pi * shakesPerTrigger * 2),
+                y: 0
+            )
+        )
     }
 }
 
