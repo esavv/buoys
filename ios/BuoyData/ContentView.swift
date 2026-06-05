@@ -39,6 +39,7 @@ struct ContentView: View {
             }
         }
         .environment(store)
+        .sensoryFeedback(.selection, trigger: selectedTab)
         .background {
             Map()
                 .frame(width: 1, height: 1)
