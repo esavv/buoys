@@ -401,7 +401,7 @@ struct AddBuoySheet: View {
         isBuoyIdFocused = true
 
         if store.contains(trimmedId) {
-            showError("This station is already in your favorites.")
+            showError("Buoy already in favorites!")
             return
         }
 
@@ -427,7 +427,7 @@ struct AddBuoySheet: View {
                         store.add(trimmedId)
                         onDismiss()
                     } else {
-                        showError("Buoy not found. Check the ID and try again.")
+                        showError("Buoy not found!")
                     }
                 }
             } catch {
