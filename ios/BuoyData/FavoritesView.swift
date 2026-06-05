@@ -344,9 +344,19 @@ struct AddBuoySheet: View {
                     }
                     .padding(.vertical, 9)
                     .padding(.horizontal, 14)
-                    .background(canSubmit ? Color(red: 0.13, green: 0.31, blue: 0.58) : Color(.systemGray4))
+                    .background {
+                        ZStack {
+                            Capsule()
+                                .fill(Color(.systemGray4))
+                                .opacity(canSubmit ? 0 : 1)
+                            Capsule()
+                                .fill(Color(red: 0.13, green: 0.31, blue: 0.58))
+                                .opacity(canSubmit ? 1 : 0)
+                        }
+                    }
                     .clipShape(Capsule())
                     .disabled(!canSubmit)
+                    .animation(.easeInOut(duration: 0.12), value: canSubmit)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 10)
