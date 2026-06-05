@@ -310,7 +310,7 @@ struct AddBuoySheet: View {
                     isFocused: $isBuoyIdFocused,
                     onSubmit: submitIfPossible
                 )
-                    .frame(height: 28)
+                    .frame(maxWidth: .infinity, minHeight: 28, maxHeight: 28)
                     .modifier(ShakeEffect(trigger: errorShakeTrigger))
                     .padding(.horizontal, 14)
                     .padding(.top, errorMessage == nil ? 14 : 0)
@@ -385,6 +385,11 @@ struct AddBuoySheet: View {
                 isBuoyIdFocused = true
             }
         }
+        .onChange(of: buoyId) {
+            if buoyId.isEmpty {
+                errorMessage = nil
+            }
+        }
     }
 
     private func submitIfPossible() {
@@ -443,7 +448,7 @@ struct AddBuoySheet: View {
         isValidating = false
         isBuoyIdFocused = true
 
-        withAnimation(.linear(duration: 0.3)) {
+        withAnimation(.linear(duration: 0.4)) {
             errorShakeTrigger += 1
         }
     }
@@ -484,6 +489,8 @@ private struct BuoyIdTextField: UIViewRepresentable {
         textField.autocorrectionType = .no
         textField.autocapitalizationType = .none
         textField.returnKeyType = .go
+        textField.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        textField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textField.delegate = context.coordinator
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textDidChange), for: .editingChanged)
         return textField
