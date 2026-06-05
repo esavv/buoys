@@ -13,6 +13,10 @@ struct FavoritesView: View {
     @Binding var selectedTab: AppTab
     @State private var showingAddSheet = false
     @State private var editMode: EditMode = .inactive
+    @Namespace private var addBuoyComposerNamespace
+
+    private let addBuoyComposerId = "add-buoy-composer"
+    private let addBuoyComposerAnimation = Animation.spring(response: 0.36, dampingFraction: 0.86)
 
     var body: some View {
         NavigationStack {
@@ -21,8 +25,10 @@ struct FavoritesView: View {
                     if store.favorites.isEmpty {
                         VStack {
                             Spacer()
-                            addButton
-                                .padding(.horizontal)
+                            if !showingAddSheet {
+                                addButton
+                                    .padding(.horizontal)
+                            }
                             Spacer()
                         }
                     } else {
@@ -36,7 +42,7 @@ struct FavoritesView: View {
                             .onDelete { store.remove(at: $0) }
                             .onMove { store.move(from: $0, to: $1) }
 
-                            if editMode == .inactive {
+                            if editMode == .inactive && !showingAddSheet {
                                 addButton
                                     .listRowSeparator(.hidden)
                                     .listRowBackground(Color.clear)
@@ -52,12 +58,14 @@ struct FavoritesView: View {
                         .contentShape(Rectangle())
                         .ignoresSafeArea()
                         .onTapGesture {
-                            showingAddSheet = false
+                            dismissAddComposer()
                         }
 
                     AddBuoySheet(
                         selectedTab: $selectedTab,
-                        onDismiss: { showingAddSheet = false }
+                        animationNamespace: addBuoyComposerNamespace,
+                        animationId: addBuoyComposerId,
+                        onDismiss: dismissAddComposer
                     )
                 }
             }
@@ -95,7 +103,9 @@ struct FavoritesView: View {
 
     private var addButton: some View {
         Button {
-            showingAddSheet = true
+            withAnimation(addBuoyComposerAnimation) {
+                showingAddSheet = true
+            }
         } label: {
             HStack {
                 Image(systemName: "plus.circle.fill")
@@ -108,6 +118,13 @@ struct FavoritesView: View {
             .background(Color(.secondarySystemGroupedBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
+            .matchedGeometryEffect(id: addBuoyComposerId, in: addBuoyComposerNamespace)
+        }
+    }
+
+    private func dismissAddComposer() {
+        withAnimation(addBuoyComposerAnimation) {
+            showingAddSheet = false
         }
     }
 }
@@ -263,6 +280,8 @@ struct FavoriteBuoyReadings: View {
 struct AddBuoySheet: View {
     @Environment(FavoritesStore.self) private var store
     @Binding var selectedTab: AppTab
+    let animationNamespace: Namespace.ID
+    let animationId: String
     let onDismiss: () -> Void
 
     @State private var buoyId = ""
@@ -346,7 +365,8 @@ struct AddBuoySheet: View {
                     .strokeBorder(Color.white.opacity(0.18))
             }
             .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
-            .padding(.horizontal, 8)
+            .matchedGeometryEffect(id: animationId, in: animationNamespace)
+            .padding(.horizontal, 16)
             .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity)
