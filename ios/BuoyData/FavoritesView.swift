@@ -285,10 +285,11 @@ struct AddBuoySheet: View {
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                    .submitLabel(.done)
+                    .submitLabel(.go)
                     .focused($isBuoyIdFocused)
                     .onSubmit {
                         if canSubmit {
+                            isBuoyIdFocused = true
                             validateAndAdd()
                         }
                     }
