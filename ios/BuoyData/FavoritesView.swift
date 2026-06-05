@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct FavoritesView: View {
     @Environment(FavoritesStore.self) private var store
@@ -267,7 +268,7 @@ struct AddBuoySheet: View {
     @State private var buoyId = ""
     @State private var isValidating = false
     @State private var errorMessage: String? = nil
-    @FocusState private var isBuoyIdFocused: Bool
+    @State private var isBuoyIdFocused = false
 
     private var trimmedBuoyId: String {
         buoyId.trimmingCharacters(in: .whitespaces)
@@ -280,19 +281,13 @@ struct AddBuoySheet: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {
-                TextField("Enter a buoy ID (e.g. 44091)", text: $buoyId)
-                    .font(.body)
-                    .textFieldStyle(.plain)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .submitLabel(.go)
-                    .focused($isBuoyIdFocused)
-                    .onSubmit {
-                        if canSubmit {
-                            isBuoyIdFocused = true
-                            validateAndAdd()
-                        }
-                    }
+                BuoyIdTextField(
+                    placeholder: "Enter a buoy ID (e.g. 44091)",
+                    text: $buoyId,
+                    isFocused: $isBuoyIdFocused,
+                    onSubmit: submitIfPossible
+                )
+                    .frame(height: 28)
                     .padding(.horizontal, 14)
                     .padding(.top, 14)
 
@@ -320,8 +315,7 @@ struct AddBuoySheet: View {
                     Spacer()
 
                     Button {
-                        isBuoyIdFocused = true
-                        validateAndAdd()
+                        submitIfPossible()
                     } label: {
                         if isValidating {
                             ProgressView()
@@ -363,6 +357,14 @@ struct AddBuoySheet: View {
             if !isBuoyIdFocused && isValidating {
                 isBuoyIdFocused = true
             }
+        }
+    }
+
+    private func submitIfPossible() {
+        isBuoyIdFocused = true
+
+        if canSubmit {
+            validateAndAdd()
         }
     }
 
@@ -413,6 +415,74 @@ struct AddBuoySheet: View {
         errorMessage = message
         isValidating = false
         isBuoyIdFocused = true
+    }
+}
+
+private struct BuoyIdTextField: UIViewRepresentable {
+    let placeholder: String
+    @Binding var text: String
+    @Binding var isFocused: Bool
+    let onSubmit: () -> Void
+
+    func makeUIView(context: Context) -> UITextField {
+        let textField = UITextField()
+        textField.borderStyle = .none
+        textField.font = .preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
+        textField.placeholder = placeholder
+        textField.autocorrectionType = .no
+        textField.autocapitalizationType = .none
+        textField.returnKeyType = .go
+        textField.delegate = context.coordinator
+        textField.addTarget(context.coordinator, action: #selector(Coordinator.textDidChange), for: .editingChanged)
+        return textField
+    }
+
+    func updateUIView(_ textField: UITextField, context: Context) {
+        context.coordinator.parent = self
+
+        if textField.text != text {
+            textField.text = text
+        }
+
+        if isFocused && !textField.isFirstResponder {
+            DispatchQueue.main.async {
+                if context.coordinator.parent.isFocused {
+                    textField.becomeFirstResponder()
+                }
+            }
+        } else if !isFocused && textField.isFirstResponder {
+            textField.resignFirstResponder()
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: BuoyIdTextField
+
+        init(parent: BuoyIdTextField) {
+            self.parent = parent
+        }
+
+        @objc func textDidChange(_ textField: UITextField) {
+            parent.text = textField.text ?? ""
+        }
+
+        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            parent.onSubmit()
+            return false
+        }
+
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            parent.isFocused = true
+        }
+
+        func textFieldDidEndEditing(_ textField: UITextField) {
+            parent.isFocused = false
+        }
     }
 }
 
