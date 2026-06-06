@@ -115,7 +115,7 @@ struct FavoritesView: View {
             }
             .foregroundStyle(Color(.systemGray))
             .frame(maxWidth: .infinity, minHeight: 60)
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(Color("AddBuoyButtonSurface"))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
         }
@@ -329,7 +329,7 @@ struct AddBuoySheet: View {
                             .foregroundStyle(.primary)
                             .padding(.vertical, 9)
                             .padding(.horizontal, 16)
-                            .background(Color(.tertiarySystemFill))
+                            .background(Color("FindOnMapButtonSurface"))
                             .clipShape(Capsule())
                     }
 
@@ -370,11 +370,11 @@ struct AddBuoySheet: View {
                 .padding(.bottom, 10)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.regularMaterial)
+            .background(Color("AddBuoyCardSurface"))
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.18))
+                    .strokeBorder(Color("AddBuoyCardBorder"))
             }
             .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
             .padding(.horizontal, 16)
