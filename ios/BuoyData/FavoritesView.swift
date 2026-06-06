@@ -113,10 +113,14 @@ struct FavoritesView: View {
                 Text("Add Buoy")
                     .font(.headline)
             }
-            .foregroundStyle(Color(.systemGray))
+            .foregroundStyle(.primary)
             .frame(maxWidth: .infinity, minHeight: 60)
             .background(Color("AddBuoyButtonSurface"))
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color("AddBuoyCardBorder"))
+            }
             .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
         }
     }
@@ -178,6 +182,10 @@ struct FavoriteBuoyRow: View {
         .padding()
         .background(Color("FavoriteCardSurface"))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color("AddBuoyCardBorder"))
+        }
         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
         .onAppear {
             fetchData()

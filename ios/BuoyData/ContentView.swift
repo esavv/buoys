@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import UIKit
 
 enum AppTab: Hashable {
     case favorites, map
@@ -19,7 +20,7 @@ struct ContentView: View {
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .secondarySystemBackground
+        appearance.backgroundColor = UIColor(named: "TabFooterSurface") ?? .secondarySystemBackground
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
