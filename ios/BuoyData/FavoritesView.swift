@@ -8,6 +8,11 @@
 import SwiftUI
 import UIKit
 
+private extension Color {
+    static let favoriteScreenBackground = Color("FavoriteScreenBackground")
+    static let favoriteCardSurface = Color("FavoriteCardSurface")
+}
+
 struct FavoritesView: View {
     @Environment(FavoritesStore.self) private var store
     @Binding var selectedTab: AppTab
@@ -19,6 +24,9 @@ struct FavoritesView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
+                Color.favoriteScreenBackground
+                    .ignoresSafeArea()
+
                 Group {
                     if store.favorites.isEmpty {
                         VStack {
@@ -48,6 +56,7 @@ struct FavoritesView: View {
                             }
                         }
                         .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
                     }
                 }
 
@@ -172,7 +181,7 @@ struct FavoriteBuoyRow: View {
             }
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.favoriteCardSurface)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
         .onAppear {
