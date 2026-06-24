@@ -283,13 +283,8 @@ private struct DirectionChartCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Swell Direction")
-                    .font(.subheadline.weight(.semibold))
-                Text("Wave direction below each point")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            Text("Swell Direction")
+                .font(.subheadline.weight(.semibold))
 
             if sampledPoints.isEmpty {
                 Text("No data available")
@@ -335,6 +330,15 @@ private struct DirectionSampleView: View {
         return "\(Int(degrees.rounded()))°"
     }
 
+    private var timeText: String? {
+        guard let date = point.date else { return nil }
+
+        let minute = Calendar.current.component(.minute, from: date)
+        let formatter = DateFormatter()
+        formatter.dateFormat = minute == 0 ? "h a" : "h:mm a"
+        return formatter.string(from: date)
+    }
+
     var body: some View {
         VStack(spacing: 4) {
             Image(systemName: "arrow.up")
@@ -353,10 +357,11 @@ private struct DirectionSampleView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
 
-            if let date = point.date {
-                Text(date, format: .dateTime.hour().minute())
-                    .font(.caption2)
+            if let timeText {
+                Text(timeText)
+                    .font(.system(size: 8))
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }
         .frame(maxWidth: .infinity)
