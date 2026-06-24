@@ -234,15 +234,15 @@ private struct DirectionChartCard: View {
     }
 
     private var sampledPoints: [BuoyHistoryPoint] {
-        sample(directionPoints, maxCount: 13)
+        sample(directionPoints, maxCount: 7)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Direction")
+                Text("Swell Direction")
                     .font(.subheadline.weight(.semibold))
-                Text("Swell arrows with wave direction below")
+                Text("Wave direction below each point")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -253,14 +253,13 @@ private struct DirectionChartCard: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 110)
             } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 14) {
-                        ForEach(sampledPoints) { point in
-                            DirectionSampleView(point: point)
-                        }
+                HStack(alignment: .top, spacing: 4) {
+                    ForEach(sampledPoints) { point in
+                        DirectionSampleView(point: point)
                     }
-                    .padding(.vertical, 4)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 2)
             }
         }
         .padding()
@@ -284,25 +283,26 @@ private struct DirectionSampleView: View {
     let point: BuoyHistoryPoint
 
     private var arrowDegrees: Double {
-        point.swellDirectionDeg ?? point.meanWaveDirectionDeg ?? 0
+        (point.swellDirectionDeg ?? point.meanWaveDirectionDeg ?? 0) + 180
     }
 
     private var waveDirectionText: String {
-        guard let degrees = point.meanWaveDirectionDeg else { return "Wave N/A" }
-        return "Wave \(Int(degrees.rounded()))°"
+        guard let degrees = point.meanWaveDirectionDeg else { return "N/A" }
+        return "\(Int(degrees.rounded()))°"
     }
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             Image(systemName: "arrow.up")
-                .font(.headline.weight(.semibold))
+                .font(.subheadline.weight(.semibold))
                 .rotationEffect(.degrees(arrowDegrees))
-                .frame(width: 28, height: 28)
+                .frame(width: 22, height: 22)
                 .foregroundStyle(Color.accentColor)
 
             Text(point.swellDirection ?? "N/A")
-                .font(.caption.weight(.semibold))
+                .font(.caption2.weight(.semibold))
                 .lineLimit(1)
+                .minimumScaleFactor(0.75)
 
             Text(waveDirectionText)
                 .font(.caption2)
@@ -315,7 +315,7 @@ private struct DirectionSampleView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: 54)
+        .frame(maxWidth: .infinity)
     }
 }
 
