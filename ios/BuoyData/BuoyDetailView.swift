@@ -157,6 +157,7 @@ private struct MetricChartCard: View {
     let data: [MetricChartDataPoint]
     let yScaleDomain: ClosedRange<Double>?
     let fillBaseline: Double
+    @State private var selectedDate: Date?
 
     init(
         title: String,
@@ -207,34 +208,87 @@ private struct MetricChartCard: View {
 
     @ViewBuilder
     private var chart: some View {
-        let baseChart = Chart(data) { point in
-            LineMark(
-                x: .value("Time", point.date),
-                y: .value(title, point.value)
-            )
-            .interpolationMethod(.catmullRom)
+        let baseChart = Chart {
+            ForEach(data) { point in
+                AreaMark(
+                    x: .value("Time", point.date),
+                    yStart: .value("Baseline", fillBaseline),
+                    yEnd: .value(title, point.value)
+                )
+                .interpolationMethod(.catmullRom)
+                .foregroundStyle(.linearGradient(
+                    colors: [Color.accentColor.opacity(0.18), Color.accentColor.opacity(0.02)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                ))
 
-            AreaMark(
-                x: .value("Time", point.date),
-                yStart: .value("Baseline", fillBaseline),
-                yEnd: .value(title, point.value)
-            )
-            .interpolationMethod(.catmullRom)
-            .foregroundStyle(.linearGradient(
-                colors: [Color.accentColor.opacity(0.18), Color.accentColor.opacity(0.02)],
-                startPoint: .top,
-                endPoint: .bottom
-            ))
+                LineMark(
+                    x: .value("Time", point.date),
+                    y: .value(title, point.value)
+                )
+                .interpolationMethod(.catmullRom)
+            }
+
+            if let selectedPoint {
+                RuleMark(x: .value("Selected Time", selectedPoint.date))
+                    .foregroundStyle(.secondary.opacity(0.45))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
+
+                PointMark(
+                    x: .value("Selected Time", selectedPoint.date),
+                    y: .value(title, selectedPoint.value)
+                )
+                .foregroundStyle(Color.accentColor)
+                .symbolSize(42)
+                .annotation(position: .top, alignment: .center) {
+                    selectedCallout(for: selectedPoint)
+                }
+            }
         }
         .chartYAxis {
             AxisMarks(position: .leading)
         }
+        .chartXSelection(value: $selectedDate)
 
         if let yScaleDomain {
             baseChart.chartYScale(domain: yScaleDomain)
         } else {
             baseChart
         }
+    }
+
+    private var selectedPoint: MetricChartDataPoint? {
+        guard let selectedDate else { return nil }
+
+        return data.min {
+            abs($0.date.timeIntervalSince(selectedDate)) < abs($1.date.timeIntervalSince(selectedDate))
+        }
+    }
+
+    private func selectedCallout(for point: MetricChartDataPoint) -> some View {
+        VStack(spacing: 2) {
+            Text(formattedValue(point.value))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+            Text(formattedTime(point.date))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 5)
+        .padding(.horizontal, 8)
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+    }
+
+    private func formattedValue(_ value: Double) -> String {
+        "\(String(format: "%.1f", value)) \(unit)"
+    }
+
+    private func formattedTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
     }
 }
 
