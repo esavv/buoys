@@ -110,7 +110,7 @@ struct BuoyDetailView: View {
             DirectionChartCard(points: historyPoints)
 
             MetricChartCard(
-                title: "Water Temp",
+                title: "Water Temperature",
                 unit: "°F",
                 points: historyPoints,
                 value: \.waterTempF,
