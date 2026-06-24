@@ -158,6 +158,7 @@ private struct MetricChartCard: View {
     let unit: String
     let data: [MetricChartDataPoint]
     let yScaleDomain: ClosedRange<Double>?
+    let fillBaseline: Double
 
     init(
         title: String,
@@ -173,7 +174,9 @@ private struct MetricChartCard: View {
             return MetricChartDataPoint(date: date, value: chartValue)
         }
         self.data = data
-        self.yScaleDomain = yScale.domain(for: data.map { $0.value })
+        let yScaleDomain = yScale.domain(for: data.map { $0.value })
+        self.yScaleDomain = yScaleDomain
+        self.fillBaseline = yScaleDomain?.lowerBound ?? 0
     }
 
     var body: some View {
@@ -215,7 +218,8 @@ private struct MetricChartCard: View {
 
             AreaMark(
                 x: .value("Time", point.date),
-                y: .value(title, point.value)
+                yStart: .value("Baseline", fillBaseline),
+                yEnd: .value(title, point.value)
             )
             .interpolationMethod(.catmullRom)
             .foregroundStyle(.linearGradient(
