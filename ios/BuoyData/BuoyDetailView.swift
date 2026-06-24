@@ -47,6 +47,7 @@ struct BuoyDetailView: View {
         .background(Color("FavoriteScreenBackground").ignoresSafeArea())
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .task(id: buoy.id) {
             await loadData()
         }
