@@ -276,8 +276,12 @@ private struct MetricChartCard: View {
         }
         .padding(.vertical, 5)
         .padding(.horizontal, 8)
-        .background(.regularMaterial)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.12))
+        }
         .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
     }
 
