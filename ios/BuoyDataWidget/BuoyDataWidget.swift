@@ -138,7 +138,7 @@ struct BuoyDataWidgetEntryView : View {
             } else if entry.isStale {
                 Spacer().frame(height: 1)
                 Text("No\nRecent\nData")
-                    .font(.system(size: 10))
+                    .font(.system(size: 9))
                     .multilineTextAlignment(.center)
                 Spacer()
             } else {
