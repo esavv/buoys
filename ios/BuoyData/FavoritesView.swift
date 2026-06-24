@@ -35,7 +35,7 @@ struct FavoritesView: View {
                     } else {
                         List {
                             ForEach(Array(store.favorites.enumerated()), id: \.element.id) { index, buoy in
-                                FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: index == 0)
+                                favoriteRow(for: buoy, isWidgetBuoy: index == 0)
                                     .listRowSeparator(.hidden)
                                     .listRowBackground(Color.clear)
                                     .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
@@ -120,6 +120,20 @@ struct FavoritesView: View {
             .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
         }
         .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func favoriteRow(for buoy: FavoriteBuoy, isWidgetBuoy: Bool) -> some View {
+        if editMode == .active {
+            FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: isWidgetBuoy)
+        } else {
+            NavigationLink {
+                BuoyDetailView(buoy: buoy)
+            } label: {
+                FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: isWidgetBuoy)
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private func dismissAddComposer() {

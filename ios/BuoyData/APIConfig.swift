@@ -23,6 +23,10 @@ enum APIConfig {
         URL(string: "\(baseURL)/buoy?id=\(buoyID)")
     }
 
+    static func buoyHistoryURL(for buoyID: String, hours: Int = 24) -> URL? {
+        URL(string: "\(baseURL)/buoy/history?id=\(buoyID)&hours=\(hours)")
+    }
+
     static var stationsURL: URL? {
         URL(string: "\(baseURL)/stations")
     }
@@ -108,6 +112,80 @@ struct BuoyResponse: Codable {
         guard let raw = waterTempC, raw != "N/A", let c = Double(raw) else { return "N/A" }
         let f = c * 9 / 5 + 32
         return String(format: "%.1f", f)
+    }
+}
+
+struct BuoyHistoryResponse: Codable {
+    let status: String
+    let stationID: String?
+    let name: String?
+    let hours: Int?
+    let points: [BuoyHistoryPoint]?
+    let errorMsg: String?
+
+    enum CodingKeys: String, CodingKey {
+        case status, name, hours, points
+        case stationID = "station_id"
+        case errorMsg = "error_msg"
+    }
+}
+
+struct BuoyHistoryPoint: Codable, Identifiable {
+    let observationTime: String
+    let sigWaveHeightFt: Double?
+    let swellHeightFt: Double?
+    let swellPeriodS: Double?
+    let swellDirection: String?
+    let swellDirectionDeg: Double?
+    let meanWaveDirectionDeg: Double?
+    let waterTempC: Double?
+
+    var id: String { observationTime }
+
+    enum CodingKeys: String, CodingKey {
+        case observationTime = "observation_time"
+        case sigWaveHeightFt = "sig_wave_height_ft"
+        case swellHeightFt = "swell_height_ft"
+        case swellPeriodS = "swell_period_s"
+        case swellDirection = "swell_direction"
+        case swellDirectionDeg = "swell_direction_deg"
+        case meanWaveDirectionDeg = "mean_wave_direction_deg"
+        case waterTempC = "water_temp_c"
+    }
+
+    private static let isoFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f
+    }()
+
+    var date: Date? {
+        Self.isoFormatter.date(from: observationTime)
+    }
+
+    var waterTempF: Double? {
+        guard let waterTempC else { return nil }
+        return waterTempC * 9 / 5 + 32
+    }
+}
+
+enum BuoyAPIClient {
+    static func fetchCurrentBuoy(id: String) async throws -> BuoyResponse {
+        guard let url = APIConfig.buoyURL(for: id) else {
+            throw URLError(.badURL)
+        }
+
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode(BuoyResponse.self, from: data)
+    }
+
+    static func fetchHistory(id: String, hours: Int = 24) async throws -> BuoyHistoryResponse {
+        guard let url = APIConfig.buoyHistoryURL(for: id, hours: hours) else {
+            throw URLError(.badURL)
+        }
+
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode(BuoyHistoryResponse.self, from: data)
     }
 }
 
