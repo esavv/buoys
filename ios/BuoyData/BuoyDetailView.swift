@@ -115,7 +115,8 @@ struct BuoyDetailView: View {
                 title: "Water Temp",
                 unit: "°F",
                 points: historyPoints,
-                value: \.waterTempF
+                value: \.waterTempF,
+                yScale: .roundedToFive
             )
         }
     }
@@ -156,19 +157,23 @@ private struct MetricChartCard: View {
     let title: String
     let unit: String
     let data: [MetricChartDataPoint]
+    let yScaleDomain: ClosedRange<Double>?
 
     init(
         title: String,
         unit: String,
         points: [BuoyHistoryPoint],
-        value: KeyPath<BuoyHistoryPoint, Double?>
+        value: KeyPath<BuoyHistoryPoint, Double?>,
+        yScale: MetricChartYScale = .automatic
     ) {
         self.title = title
         self.unit = unit
-        self.data = points.compactMap { point in
+        let data = points.compactMap { point in
             guard let date = point.date, let value = point[keyPath: value] else { return nil }
             return MetricChartDataPoint(date: date, value: value)
         }
+        self.data = data
+        self.yScaleDomain = yScale.domain(for: data.map(\.value))
     }
 
     var body: some View {
@@ -188,28 +193,8 @@ private struct MetricChartCard: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 140)
             } else {
-                Chart(data) { point in
-                    LineMark(
-                        x: .value("Time", point.date),
-                        y: .value(title, point.value)
-                    )
-                    .interpolationMethod(.catmullRom)
-
-                    AreaMark(
-                        x: .value("Time", point.date),
-                        y: .value(title, point.value)
-                    )
-                    .interpolationMethod(.catmullRom)
-                    .foregroundStyle(.linearGradient(
-                        colors: [Color.accentColor.opacity(0.18), Color.accentColor.opacity(0.02)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ))
-                }
-                .chartYAxis {
-                    AxisMarks(position: .leading)
-                }
-                .frame(height: 160)
+                chart
+                    .frame(height: 160)
             }
         }
         .padding()
@@ -218,12 +203,67 @@ private struct MetricChartCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
     }
+
+    @ViewBuilder
+    private var chart: some View {
+        let baseChart = Chart(data) { point in
+            LineMark(
+                x: .value("Time", point.date),
+                y: .value(title, point.value)
+            )
+            .interpolationMethod(.catmullRom)
+
+            AreaMark(
+                x: .value("Time", point.date),
+                y: .value(title, point.value)
+            )
+            .interpolationMethod(.catmullRom)
+            .foregroundStyle(.linearGradient(
+                colors: [Color.accentColor.opacity(0.18), Color.accentColor.opacity(0.02)],
+                startPoint: .top,
+                endPoint: .bottom
+            ))
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading)
+        }
+
+        if let yScaleDomain {
+            baseChart.chartYScale(domain: yScaleDomain)
+        } else {
+            baseChart
+        }
+    }
 }
 
 private struct MetricChartDataPoint: Identifiable {
     let id = UUID()
     let date: Date
     let value: Double
+}
+
+private enum MetricChartYScale {
+    case automatic
+    case roundedToFive
+
+    func domain(for values: [Double]) -> ClosedRange<Double>? {
+        switch self {
+        case .automatic:
+            return nil
+        case .roundedToFive:
+            guard let minValue = values.min(), let maxValue = values.max() else { return nil }
+
+            let interval = 5.0
+            let lower = floor(minValue / interval) * interval
+            var upper = ceil(maxValue / interval) * interval
+
+            if upper <= lower {
+                upper = lower + interval
+            }
+
+            return lower...upper
+        }
+    }
 }
 
 private struct DirectionChartCard: View {
