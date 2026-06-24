@@ -163,17 +163,17 @@ private struct MetricChartCard: View {
         title: String,
         unit: String,
         points: [BuoyHistoryPoint],
-        value: KeyPath<BuoyHistoryPoint, Double?>,
+        value metricValue: KeyPath<BuoyHistoryPoint, Double?>,
         yScale: MetricChartYScale = .automatic
     ) {
         self.title = title
         self.unit = unit
-        let data = points.compactMap { point in
-            guard let date = point.date, let value = point[keyPath: value] else { return nil }
-            return MetricChartDataPoint(date: date, value: value)
+        let data: [MetricChartDataPoint] = points.compactMap { point in
+            guard let date = point.date, let chartValue = point[keyPath: metricValue] else { return nil }
+            return MetricChartDataPoint(date: date, value: chartValue)
         }
         self.data = data
-        self.yScaleDomain = yScale.domain(for: data.map(\.value))
+        self.yScaleDomain = yScale.domain(for: data.map { $0.value })
     }
 
     var body: some View {
