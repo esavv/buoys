@@ -158,6 +158,7 @@ private struct MetricChartCard: View {
     let yScaleDomain: ClosedRange<Double>?
     let fillBaseline: Double
     @State private var selectedDate: Date?
+    @State private var selectionLayout = MetricChartSelectionLayout()
 
     init(
         title: String,
@@ -180,9 +181,18 @@ private struct MetricChartCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .padding(.bottom, 2)
+            HStack(alignment: .firstTextBaseline) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+
+                Spacer()
+
+                if let selectedPoint {
+                    selectedTimeCallout(for: selectedPoint)
+                }
+            }
+            .frame(height: 24)
+            .padding(.bottom, 2)
 
             if data.isEmpty {
                 Text("No data available")
@@ -190,7 +200,7 @@ private struct MetricChartCard: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 140)
             } else {
-                selectionRows
+                selectedValueRow
 
                 chart
                     .frame(height: 160)
@@ -266,6 +276,29 @@ private struct MetricChartCard: View {
             }
         }
         .chartXSelection(value: $selectedDate)
+        .chartOverlay { proxy in
+            GeometryReader { geometry in
+                if let plotFrameAnchor = proxy.plotFrame {
+                    let plotFrame = geometry[plotFrameAnchor]
+                    let selectedX = selectedPoint
+                        .flatMap { proxy.position(forX: $0.date) }
+                        .map { plotFrame.minX + $0 }
+
+                    Color.clear.preference(
+                        key: MetricChartSelectionLayoutKey.self,
+                        value: MetricChartSelectionLayout(plotFrame: plotFrame, selectedX: selectedX)
+                    )
+                } else {
+                    Color.clear.preference(
+                        key: MetricChartSelectionLayoutKey.self,
+                        value: MetricChartSelectionLayout()
+                    )
+                }
+            }
+        }
+        .onPreferenceChange(MetricChartSelectionLayoutKey.self) { layout in
+            selectionLayout = layout
+        }
 
         if let yScaleDomain {
             baseChart.chartYScale(domain: yScaleDomain)
@@ -274,37 +307,24 @@ private struct MetricChartCard: View {
         }
     }
 
-    private var selectionRows: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Spacer()
-                if let selectedPoint {
-                    selectedTimeCallout(for: selectedPoint)
-                } else {
-                    selectionPlaceholder
-                }
-                Spacer()
+    private var selectedValueRow: some View {
+        GeometryReader { geometry in
+            if let selectedPoint, let selectedX = selectionLayout.selectedX {
+                selectedValueCallout(for: selectedPoint)
+                    .position(
+                        x: clamped(
+                            selectedX,
+                            min: selectionLayout.plotFrame.minX,
+                            max: min(selectionLayout.plotFrame.maxX, geometry.size.width)
+                        ),
+                        y: geometry.size.height / 2
+                    )
+            } else {
+                selectionPlaceholder
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
             }
-            .frame(height: 24)
-
-            GeometryReader { geometry in
-                if let selectedPoint, let progress = selectedPointProgress {
-                    selectedValueCallout(for: selectedPoint)
-                        .position(
-                            x: clamped(
-                                geometry.size.width * progress,
-                                min: 42,
-                                max: geometry.size.width - 42
-                            ),
-                            y: geometry.size.height / 2
-                        )
-                } else {
-                    selectionPlaceholder
-                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                }
-            }
-            .frame(height: 24)
         }
+        .frame(height: 24)
     }
 
     private var selectedPoint: MetricChartDataPoint? {
@@ -313,20 +333,6 @@ private struct MetricChartCard: View {
         return data.min {
             abs($0.date.timeIntervalSince(selectedDate)) < abs($1.date.timeIntervalSince(selectedDate))
         }
-    }
-
-    private var selectedPointProgress: CGFloat? {
-        guard
-            let selectedPoint,
-            let firstDate = data.first?.date,
-            let lastDate = data.last?.date
-        else { return nil }
-
-        let totalInterval = lastDate.timeIntervalSince(firstDate)
-        guard totalInterval > 0 else { return 0.5 }
-
-        let selectedInterval = selectedPoint.date.timeIntervalSince(firstDate)
-        return clamped(CGFloat(selectedInterval / totalInterval), min: 0, max: 1)
     }
 
     private var selectionPlaceholder: some View {
@@ -343,9 +349,6 @@ private struct MetricChartCard: View {
             .foregroundStyle(.primary)
             .padding(.vertical, 5)
             .padding(.horizontal, 8)
-            .background(Color(.systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
     }
 
     private func selectedValueCallout(for point: MetricChartDataPoint) -> some View {
@@ -354,9 +357,6 @@ private struct MetricChartCard: View {
             .foregroundStyle(.primary)
             .padding(.vertical, 5)
             .padding(.horizontal, 8)
-            .background(Color(.systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
     }
 
     private func clamped(_ value: CGFloat, min lowerBound: CGFloat, max upperBound: CGFloat) -> CGFloat {
@@ -396,6 +396,19 @@ private struct MetricChartDataPoint: Identifiable {
     let id = UUID()
     let date: Date
     let value: Double
+}
+
+private struct MetricChartSelectionLayout: Equatable {
+    var plotFrame: CGRect = .zero
+    var selectedX: CGFloat?
+}
+
+private struct MetricChartSelectionLayoutKey: PreferenceKey {
+    static let defaultValue = MetricChartSelectionLayout()
+
+    static func reduce(value: inout MetricChartSelectionLayout, nextValue: () -> MetricChartSelectionLayout) {
+        value = nextValue()
+    }
 }
 
 private enum MetricChartYScale {
