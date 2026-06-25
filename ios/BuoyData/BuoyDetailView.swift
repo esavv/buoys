@@ -42,7 +42,9 @@ struct BuoyDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.top, 2)
+            .padding(.bottom)
         }
         .background(Color("FavoriteScreenBackground").ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
