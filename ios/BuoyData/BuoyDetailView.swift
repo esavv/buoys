@@ -374,10 +374,10 @@ private struct MetricChartDataPoint: Identifiable {
 }
 
 private struct CombinedHeightChartCard: View {
-    private let title = "Swell & Wave Height"
+    private let title = "Wave & Swell Height"
     private let unit = "ft"
-    private let swellColor = Color.accentColor
-    private let waveColor = Color.green
+    private let waveColor = Color.accentColor
+    private let swellColor = Color.green
 
     let data: [HeightChartDataPoint]
     let seriesData: [HeightChartSeriesPoint]
@@ -486,21 +486,21 @@ private struct CombinedHeightChartCard: View {
                     .foregroundStyle(.secondary.opacity(0.45))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
 
-                if let swellHeight = selectedPoint.swellHeight {
-                    PointMark(
-                        x: .value("Selected Time", selectedPoint.date),
-                        y: .value("Swell Height", swellHeight)
-                    )
-                    .foregroundStyle(swellColor)
-                    .symbolSize(42)
-                }
-
                 if let waveHeight = selectedPoint.waveHeight {
                     PointMark(
                         x: .value("Selected Time", selectedPoint.date),
                         y: .value("Wave Height", waveHeight)
                     )
                     .foregroundStyle(waveColor)
+                    .symbolSize(42)
+                }
+
+                if let swellHeight = selectedPoint.swellHeight {
+                    PointMark(
+                        x: .value("Selected Time", selectedPoint.date),
+                        y: .value("Swell Height", swellHeight)
+                    )
+                    .foregroundStyle(swellColor)
                     .symbolSize(42)
                 }
             }
@@ -566,16 +566,16 @@ private struct CombinedHeightChartCard: View {
     }
 
     private var selectedValueRows: some View {
-        VStack(spacing: 0) {
-            selectedValueRow(value: selectedPoint?.swellHeight, color: swellColor, label: HeightChartSeries.swell.label)
-            selectedValueRow(value: selectedPoint?.waveHeight, color: waveColor, label: HeightChartSeries.wave.label)
+        VStack(spacing: -3) {
+            selectedValueRow(value: selectedPoint?.waveHeight, color: waveColor)
+            selectedValueRow(value: selectedPoint?.swellHeight, color: swellColor)
         }
     }
 
-    private func selectedValueRow(value: Double?, color: Color, label: String) -> some View {
+    private func selectedValueRow(value: Double?, color: Color) -> some View {
         GeometryReader { geometry in
             if let value, let selectedX = selectionLayout.selectedX {
-                Text("\(label) \(formattedValue(value))")
+                Text(formattedValue(value))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(color)
                     .position(x: selectedX, y: geometry.size.height / 2)
@@ -590,8 +590,8 @@ private struct CombinedHeightChartCard: View {
     private var legend: some View {
         HStack(spacing: 10) {
             Spacer()
-            HeightChartLegendItem(color: swellColor, label: "Swell")
             HeightChartLegendItem(color: waveColor, label: "Wave")
+            HeightChartLegendItem(color: swellColor, label: "Swell")
         }
         .padding(.top, 4)
     }
