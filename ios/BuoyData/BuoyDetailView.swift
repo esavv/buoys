@@ -165,7 +165,7 @@ private struct MetricChartCard: View {
         unit: String,
         points: [BuoyHistoryPoint],
         value metricValue: KeyPath<BuoyHistoryPoint, Double?>,
-        yScale: MetricChartYScale = .automatic
+        yScale: MetricChartYScale = .zeroBasedBuffered
     ) {
         self.title = title
         self.unit = unit
@@ -399,13 +399,16 @@ private struct MetricChartSelectionLayoutKey: PreferenceKey {
 }
 
 private enum MetricChartYScale {
-    case automatic
+    case zeroBasedBuffered
     case roundedToFive
 
     func domain(for values: [Double]) -> ClosedRange<Double>? {
         switch self {
-        case .automatic:
-            return nil
+        case .zeroBasedBuffered:
+            guard let maxValue = values.max() else { return nil }
+
+            let upper = max(1, floor(maxValue) + 1)
+            return 0...upper
         case .roundedToFive:
             guard let minValue = values.min(), let maxValue = values.max() else { return nil }
 
