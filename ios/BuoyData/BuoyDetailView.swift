@@ -86,19 +86,7 @@ struct BuoyDetailView: View {
             Text("Last 24 Hours")
                 .font(.headline)
 
-            MetricChartCard(
-                title: "Wave Height",
-                unit: "ft",
-                points: historyPoints,
-                value: \.sigWaveHeightFt
-            )
-
-            MetricChartCard(
-                title: "Swell Height",
-                unit: "ft",
-                points: historyPoints,
-                value: \.swellHeightFt
-            )
+            CombinedHeightChartCard(points: historyPoints)
 
             MetricChartCard(
                 title: "Swell Period",
@@ -383,6 +371,306 @@ private struct MetricChartDataPoint: Identifiable {
     let id = UUID()
     let date: Date
     let value: Double
+}
+
+private struct CombinedHeightChartCard: View {
+    private let title = "Swell & Wave Height"
+    private let unit = "ft"
+    private let swellColor = Color.accentColor
+    private let waveColor = Color.green
+
+    let data: [HeightChartDataPoint]
+    let yScaleDomain: ClosedRange<Double>?
+    let fillBaseline: Double
+
+    @State private var selectedDate: Date?
+    @State private var selectionLayout = MetricChartSelectionLayout()
+
+    init(points: [BuoyHistoryPoint]) {
+        let data: [HeightChartDataPoint] = points.compactMap { point in
+            guard let date = point.date else { return nil }
+            guard point.swellHeightFt != nil || point.sigWaveHeightFt != nil else { return nil }
+
+            return HeightChartDataPoint(
+                date: date,
+                swellHeight: point.swellHeightFt,
+                waveHeight: point.sigWaveHeightFt
+            )
+        }
+
+        self.data = data
+
+        let values: [Double] = data.flatMap { point in
+            [point.swellHeight, point.waveHeight].compactMap { $0 }
+        }
+        let yScaleDomain = MetricChartYScale.zeroBasedBuffered.domain(for: values)
+        self.yScaleDomain = yScaleDomain
+        self.fillBaseline = yScaleDomain?.lowerBound ?? 0
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+
+                Spacer()
+
+                if let selectedPoint {
+                    selectedTimeCallout(for: selectedPoint)
+                } else {
+                    selectionPlaceholder
+                }
+            }
+            .frame(height: 18)
+
+            if data.isEmpty {
+                Text("No data available")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 140)
+            } else {
+                selectedValueRows
+
+                chart
+                    .frame(height: 160)
+
+                legend
+            }
+        }
+        .padding(.top, 10)
+        .padding(.bottom, 16)
+        .padding(.leading, 8)
+        .padding(.trailing, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color("FavoriteCardSurface"))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
+    }
+
+    @ViewBuilder
+    private var chart: some View {
+        let baseChart = Chart {
+            ForEach(data) { point in
+                if let swellHeight = point.swellHeight {
+                    AreaMark(
+                        x: .value("Time", point.date),
+                        yStart: .value("Baseline", fillBaseline),
+                        yEnd: .value("Swell Height", swellHeight)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(.linearGradient(
+                        colors: [swellColor.opacity(0.16), swellColor.opacity(0.02)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ))
+
+                    LineMark(
+                        x: .value("Time", point.date),
+                        y: .value("Swell Height", swellHeight)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(swellColor)
+                }
+
+                if let waveHeight = point.waveHeight {
+                    AreaMark(
+                        x: .value("Time", point.date),
+                        yStart: .value("Baseline", fillBaseline),
+                        yEnd: .value("Wave Height", waveHeight)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(.linearGradient(
+                        colors: [waveColor.opacity(0.14), waveColor.opacity(0.02)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ))
+
+                    LineMark(
+                        x: .value("Time", point.date),
+                        y: .value("Wave Height", waveHeight)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(waveColor)
+                }
+            }
+
+            if let selectedPoint {
+                RuleMark(x: .value("Selected Time", selectedPoint.date))
+                    .foregroundStyle(.secondary.opacity(0.45))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
+
+                if let swellHeight = selectedPoint.swellHeight {
+                    PointMark(
+                        x: .value("Selected Time", selectedPoint.date),
+                        y: .value("Swell Height", swellHeight)
+                    )
+                    .foregroundStyle(swellColor)
+                    .symbolSize(42)
+                }
+
+                if let waveHeight = selectedPoint.waveHeight {
+                    PointMark(
+                        x: .value("Selected Time", selectedPoint.date),
+                        y: .value("Wave Height", waveHeight)
+                    )
+                    .foregroundStyle(waveColor)
+                    .symbolSize(42)
+                }
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading) { value in
+                AxisGridLine()
+                AxisTick()
+                AxisValueLabel {
+                    if let axisValue = value.as(Double.self) {
+                        Text("\(formattedAxisValue(axisValue)) \(unit)")
+                            .offset(x: 4, y: 6)
+                    }
+                }
+            }
+        }
+        .chartXAxis {
+            AxisMarks { value in
+                AxisGridLine()
+                AxisTick()
+                AxisValueLabel {
+                    if let date = value.as(Date.self) {
+                        Text(formattedAxisTime(date))
+                    }
+                }
+            }
+        }
+        .chartXSelection(value: $selectedDate)
+        .chartOverlay { proxy in
+            GeometryReader { geometry in
+                if let plotFrameAnchor = proxy.plotFrame {
+                    let plotFrame = geometry[plotFrameAnchor]
+                    let selectedX = selectedPoint
+                        .flatMap { proxy.position(forX: $0.date) }
+                        .map { plotFrame.minX + $0 }
+
+                    Color.clear.preference(
+                        key: MetricChartSelectionLayoutKey.self,
+                        value: MetricChartSelectionLayout(plotFrame: plotFrame, selectedX: selectedX)
+                    )
+                } else {
+                    Color.clear.preference(
+                        key: MetricChartSelectionLayoutKey.self,
+                        value: MetricChartSelectionLayout()
+                    )
+                }
+            }
+        }
+        .onPreferenceChange(MetricChartSelectionLayoutKey.self) { layout in
+            selectionLayout = layout
+        }
+
+        if let yScaleDomain {
+            baseChart.chartYScale(domain: yScaleDomain)
+        } else {
+            baseChart
+        }
+    }
+
+    private var selectedValueRows: some View {
+        VStack(spacing: 0) {
+            selectedValueRow(value: selectedPoint?.swellHeight, color: swellColor)
+            selectedValueRow(value: selectedPoint?.waveHeight, color: waveColor)
+        }
+    }
+
+    private func selectedValueRow(value: Double?, color: Color) -> some View {
+        GeometryReader { geometry in
+            if let value, let selectedX = selectionLayout.selectedX {
+                Text(formattedValue(value))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(color)
+                    .position(x: selectedX, y: geometry.size.height / 2)
+            } else {
+                selectionPlaceholder
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+            }
+        }
+        .frame(height: 18)
+    }
+
+    private var legend: some View {
+        HStack(spacing: 10) {
+            Spacer()
+            HeightChartLegendItem(color: swellColor, label: "Swell")
+            HeightChartLegendItem(color: waveColor, label: "Wave")
+        }
+        .padding(.top, 4)
+    }
+
+    private var selectedPoint: HeightChartDataPoint? {
+        guard let selectedDate else { return nil }
+
+        return data.min {
+            abs($0.date.timeIntervalSince(selectedDate)) < abs($1.date.timeIntervalSince(selectedDate))
+        }
+    }
+
+    private var selectionPlaceholder: some View {
+        Text("00:00 PM")
+            .font(.caption.weight(.semibold))
+            .opacity(0)
+    }
+
+    private func selectedTimeCallout(for point: HeightChartDataPoint) -> some View {
+        Text(formattedTime(point.date))
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.primary)
+    }
+
+    private func formattedValue(_ value: Double) -> String {
+        "\(String(format: "%.1f", value)) \(unit)"
+    }
+
+    private func formattedAxisValue(_ value: Double) -> String {
+        if value.rounded() == value {
+            return String(Int(value))
+        }
+
+        return String(format: "%.1f", value)
+    }
+
+    private func formattedTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
+
+    private func formattedAxisTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h a"
+        return formatter.string(from: date)
+    }
+}
+
+private struct HeightChartDataPoint: Identifiable {
+    let id = UUID()
+    let date: Date
+    let swellHeight: Double?
+    let waveHeight: Double?
+}
+
+private struct HeightChartLegendItem: View {
+    let color: Color
+    let label: String
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 7, height: 7)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
 }
 
 private struct MetricChartSelectionLayout: Equatable {
