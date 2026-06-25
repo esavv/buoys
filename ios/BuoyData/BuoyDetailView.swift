@@ -180,14 +180,8 @@ private struct MetricChartCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                Spacer()
-                Text(unit)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            Text(title)
+                .font(.subheadline.weight(.semibold))
 
             if data.isEmpty {
                 Text("No data available")
@@ -246,7 +240,15 @@ private struct MetricChartCard: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading)
+            AxisMarks(position: .leading) { value in
+                AxisGridLine()
+                AxisTick()
+                AxisValueLabel {
+                    if let axisValue = value.as(Double.self) {
+                        Text("\(formattedAxisValue(axisValue)) \(unit)")
+                    }
+                }
+            }
         }
         .chartXSelection(value: $selectedDate)
 
@@ -287,6 +289,14 @@ private struct MetricChartCard: View {
 
     private func formattedValue(_ value: Double) -> String {
         "\(String(format: "%.1f", value)) \(unit)"
+    }
+
+    private func formattedAxisValue(_ value: Double) -> String {
+        if value.rounded() == value {
+            return String(Int(value))
+        }
+
+        return String(format: "%.1f", value)
     }
 
     private func formattedTime(_ date: Date) -> String {
