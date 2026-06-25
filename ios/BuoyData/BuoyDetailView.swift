@@ -179,9 +179,10 @@ private struct MetricChartCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
+                .padding(.bottom, 2)
 
             if data.isEmpty {
                 Text("No data available")
@@ -274,7 +275,7 @@ private struct MetricChartCard: View {
     }
 
     private var selectionRows: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 0) {
             HStack {
                 Spacer()
                 if let selectedPoint {
@@ -284,7 +285,7 @@ private struct MetricChartCard: View {
                 }
                 Spacer()
             }
-            .frame(height: 22)
+            .frame(height: 24)
 
             GeometryReader { geometry in
                 if let selectedPoint, let progress = selectedPointProgress {
@@ -302,7 +303,7 @@ private struct MetricChartCard: View {
                         .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 }
             }
-            .frame(height: 26)
+            .frame(height: 24)
         }
     }
 
@@ -330,24 +331,20 @@ private struct MetricChartCard: View {
 
     private var selectionPlaceholder: some View {
         Text("00:00 PM")
-            .font(.caption2.weight(.medium))
-            .padding(.vertical, 4)
+            .font(.caption.weight(.semibold))
+            .padding(.vertical, 5)
             .padding(.horizontal, 8)
             .opacity(0)
     }
 
     private func selectedTimeCallout(for point: MetricChartDataPoint) -> some View {
         Text(formattedTime(point.date))
-            .font(.caption2.weight(.medium))
-            .foregroundStyle(.secondary)
-            .padding(.vertical, 4)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.primary)
+            .padding(.vertical, 5)
             .padding(.horizontal, 8)
             .background(Color(.systemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.12))
-            }
             .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
     }
 
@@ -359,10 +356,6 @@ private struct MetricChartCard: View {
             .padding(.horizontal, 8)
             .background(Color(.systemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.12))
-            }
             .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
     }
 
