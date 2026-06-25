@@ -8,7 +8,7 @@
 import Foundation
 import WidgetKit
 
-struct FavoriteBuoy: Codable, Identifiable, Equatable {
+struct FavoriteBuoy: Codable, Identifiable, Equatable, Hashable {
     let id: String
 }
 
