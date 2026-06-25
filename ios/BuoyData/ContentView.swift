@@ -16,6 +16,7 @@ enum AppTab: Hashable {
 struct ContentView: View {
     @State private var store = FavoritesStore()
     @State private var selectedTab: AppTab = .favorites
+    @State private var focusedMapStationID: String?
 
     init() {
         let appearance = UITabBarAppearance()
@@ -28,13 +29,16 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             Tab(value: .favorites) {
-                FavoritesView(selectedTab: $selectedTab)
+                FavoritesView(
+                    selectedTab: $selectedTab,
+                    focusedMapStationID: $focusedMapStationID
+                )
             } label: {
                 Label("Favorites", systemImage: "star.fill")
             }
 
             Tab(value: .map) {
-                MapView()
+                MapView(focusedStationID: $focusedMapStationID)
             } label: {
                 Label("Map", systemImage: "map")
             }

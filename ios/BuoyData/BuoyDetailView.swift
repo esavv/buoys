@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BuoyDetailView: View {
     let buoy: FavoriteBuoy
+    var onOpenMap: ((String) -> Void)? = nil
 
     @State private var currentData: BuoyResponse?
     @State private var historyData: BuoyHistoryResponse?
@@ -122,7 +123,10 @@ struct BuoyDetailView: View {
             if let buoyCoordinate {
                 BuoyLocationMapCard(
                     coordinate: buoyCoordinate,
-                    title: "Station \(buoy.id)"
+                    title: "Station \(buoy.id)",
+                    onTap: {
+                        onOpenMap?(buoy.id)
+                    }
                 )
             }
         }
@@ -715,6 +719,7 @@ private struct HeightChartLegendItem: View {
 private struct BuoyLocationMapCard: View {
     let coordinate: CLLocationCoordinate2D
     let title: String
+    let onTap: () -> Void
 
     private var region: MKCoordinateRegion {
         MKCoordinateRegion(
@@ -724,15 +729,19 @@ private struct BuoyLocationMapCard: View {
     }
 
     var body: some View {
-        Map(initialPosition: .region(region)) {
-            Marker(title, coordinate: coordinate)
-                .tint(.red)
+        ZStack {
+            Map(initialPosition: .region(region)) {
+                Marker(title, coordinate: coordinate)
+                    .tint(.red)
+            }
+            .allowsHitTesting(false)
         }
-        .allowsHitTesting(false)
         .frame(height: 150)
         .frame(maxWidth: .infinity, alignment: .leading)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .onTapGesture(perform: onTap)
     }
 }
 

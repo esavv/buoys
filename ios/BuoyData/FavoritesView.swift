@@ -11,6 +11,7 @@ import UIKit
 struct FavoritesView: View {
     @Environment(FavoritesStore.self) private var store
     @Binding var selectedTab: AppTab
+    @Binding var focusedMapStationID: String?
     @State private var showingAddSheet = false
     @State private var editMode: EditMode = .inactive
     @State private var selectedBuoy: FavoriteBuoy?
@@ -100,7 +101,10 @@ struct FavoritesView: View {
                 }
             }
             .navigationDestination(item: $selectedBuoy) { buoy in
-                BuoyDetailView(buoy: buoy)
+                BuoyDetailView(buoy: buoy) { stationID in
+                    focusedMapStationID = stationID
+                    selectedTab = .map
+                }
             }
         }
     }
@@ -563,6 +567,9 @@ private struct BuoyIdTextField: UIViewRepresentable {
 }
 
 #Preview {
-    FavoritesView(selectedTab: .constant(.favorites))
+    FavoritesView(
+        selectedTab: .constant(.favorites),
+        focusedMapStationID: .constant(nil)
+    )
         .environment(FavoritesStore())
 }

@@ -9,12 +9,17 @@ import SwiftUI
 import MapKit
 
 struct MapView: View {
+    @Binding var focusedStationID: String?
     @State private var stations: [Station] = []
     @State private var selectedStation: Station? = nil
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            BuoyMapView(stations: stations, selectedStation: $selectedStation)
+            BuoyMapView(
+                stations: stations,
+                selectedStation: $selectedStation,
+                focusedStationID: $focusedStationID
+            )
                 .ignoresSafeArea(.container, edges: .top)
 
             if let station = selectedStation {
@@ -248,6 +253,7 @@ class BuoyAnnotation: NSObject, MKAnnotation {
 struct BuoyMapView: UIViewRepresentable {
     let stations: [Station]
     @Binding var selectedStation: Station?
+    @Binding var focusedStationID: String?
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -267,15 +273,38 @@ struct BuoyMapView: UIViewRepresentable {
         let existingIds = Set(mapView.annotations.compactMap { ($0 as? BuoyAnnotation)?.stationId })
         let newIds = Set(stations.map { $0.id })
 
-        guard existingIds != newIds else { return }
+        guard existingIds != newIds else {
+            focusMapIfNeeded(mapView)
+            return
+        }
 
         mapView.removeAnnotations(mapView.annotations)
         let annotations = stations.map { BuoyAnnotation(station: $0) }
         mapView.addAnnotations(annotations)
+
+        focusMapIfNeeded(mapView)
     }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
+    }
+
+    private func focusMapIfNeeded(_ mapView: MKMapView) {
+        guard
+            let focusedStationID,
+            let station = stations.first(where: { $0.id == focusedStationID })
+        else { return }
+
+        let coordinate = CLLocationCoordinate2D(latitude: station.lat, longitude: station.lon)
+        let region = MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 1.2, longitudeDelta: 1.2)
+        )
+        mapView.setRegion(region, animated: true)
+
+        DispatchQueue.main.async {
+            self.focusedStationID = nil
+        }
     }
 
     class Coordinator: NSObject, MKMapViewDelegate {
@@ -328,5 +357,5 @@ struct BuoyMapView: UIViewRepresentable {
 }
 
 #Preview {
-    MapView()
+    MapView(focusedStationID: .constant(nil))
 }
