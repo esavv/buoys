@@ -442,7 +442,7 @@ private struct CombinedHeightChartCard: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 140)
             } else {
-                selectedValueRows
+                selectedValueRow
 
                 chart
                     .frame(height: 160)
@@ -565,19 +565,10 @@ private struct CombinedHeightChartCard: View {
         }
     }
 
-    private var selectedValueRows: some View {
-        VStack(spacing: -3) {
-            selectedValueRow(value: selectedPoint?.waveHeight, color: waveColor)
-            selectedValueRow(value: selectedPoint?.swellHeight, color: swellColor)
-        }
-    }
-
-    private func selectedValueRow(value: Double?, color: Color) -> some View {
+    private var selectedValueRow: some View {
         GeometryReader { geometry in
-            if let value, let selectedX = selectionLayout.selectedX {
-                Text(formattedValue(value))
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(color)
+            if let selectedPoint, let selectedX = selectionLayout.selectedX {
+                selectedValuesCallout(for: selectedPoint)
                     .position(x: selectedX, y: geometry.size.height / 2)
             } else {
                 selectionPlaceholder
@@ -585,6 +576,21 @@ private struct CombinedHeightChartCard: View {
             }
         }
         .frame(height: 18)
+    }
+
+    private func selectedValuesCallout(for point: HeightChartDataPoint) -> some View {
+        HStack(spacing: 6) {
+            if let waveHeight = point.waveHeight {
+                Text(formattedValue(waveHeight))
+                    .foregroundStyle(waveColor)
+            }
+
+            if let swellHeight = point.swellHeight {
+                Text(formattedValue(swellHeight))
+                    .foregroundStyle(swellColor)
+            }
+        }
+        .font(.caption.weight(.semibold))
     }
 
     private var legend: some View {
