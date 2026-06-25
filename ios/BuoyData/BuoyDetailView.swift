@@ -189,6 +189,8 @@ private struct MetricChartCard: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 140)
             } else {
+                selectionRows
+
                 chart
                     .frame(height: 160)
             }
@@ -263,35 +265,44 @@ private struct MetricChartCard: View {
             }
         }
         .chartXSelection(value: $selectedDate)
-        .chartOverlay { proxy in
-            GeometryReader { geometry in
-                if let selectedPoint,
-                   let selectedX = proxy.position(forX: selectedPoint.date),
-                   let plotFrameAnchor = proxy.plotFrame {
-                    let plotFrame = geometry[plotFrameAnchor]
-                    let absoluteX = plotFrame.minX + selectedX
-
-                    ZStack {
-                        selectedTimeCallout(for: selectedPoint)
-                            .position(
-                                x: plotFrame.midX,
-                                y: max(plotFrame.minY - 10, 12)
-                            )
-
-                        selectedValueCallout(for: selectedPoint)
-                            .position(
-                                x: clamped(absoluteX, min: plotFrame.minX + 42, max: plotFrame.maxX - 42),
-                                y: plotFrame.minY + 18
-                            )
-                    }
-                }
-            }
-        }
 
         if let yScaleDomain {
             baseChart.chartYScale(domain: yScaleDomain)
         } else {
             baseChart
+        }
+    }
+
+    private var selectionRows: some View {
+        VStack(spacing: 4) {
+            HStack {
+                Spacer()
+                if let selectedPoint {
+                    selectedTimeCallout(for: selectedPoint)
+                } else {
+                    selectionPlaceholder
+                }
+                Spacer()
+            }
+            .frame(height: 22)
+
+            GeometryReader { geometry in
+                if let selectedPoint, let progress = selectedPointProgress {
+                    selectedValueCallout(for: selectedPoint)
+                        .position(
+                            x: clamped(
+                                geometry.size.width * progress,
+                                min: 42,
+                                max: geometry.size.width - 42
+                            ),
+                            y: geometry.size.height / 2
+                        )
+                } else {
+                    selectionPlaceholder
+                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                }
+            }
+            .frame(height: 26)
         }
     }
 
@@ -301,6 +312,28 @@ private struct MetricChartCard: View {
         return data.min {
             abs($0.date.timeIntervalSince(selectedDate)) < abs($1.date.timeIntervalSince(selectedDate))
         }
+    }
+
+    private var selectedPointProgress: CGFloat? {
+        guard
+            let selectedPoint,
+            let firstDate = data.first?.date,
+            let lastDate = data.last?.date
+        else { return nil }
+
+        let totalInterval = lastDate.timeIntervalSince(firstDate)
+        guard totalInterval > 0 else { return 0.5 }
+
+        let selectedInterval = selectedPoint.date.timeIntervalSince(firstDate)
+        return clamped(CGFloat(selectedInterval / totalInterval), min: 0, max: 1)
+    }
+
+    private var selectionPlaceholder: some View {
+        Text("00:00 PM")
+            .font(.caption2.weight(.medium))
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .opacity(0)
     }
 
     private func selectedTimeCallout(for point: MetricChartDataPoint) -> some View {
