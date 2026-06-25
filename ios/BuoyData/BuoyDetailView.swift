@@ -181,7 +181,7 @@ private struct MetricChartCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .center) {
                 Text(title)
                     .font(.subheadline.weight(.semibold))
 
@@ -189,10 +189,11 @@ private struct MetricChartCard: View {
 
                 if let selectedPoint {
                     selectedTimeCallout(for: selectedPoint)
+                } else {
+                    selectionPlaceholder
                 }
             }
-            .frame(height: 24)
-            .padding(.bottom, 2)
+            .frame(height: 18)
 
             if data.isEmpty {
                 Text("No data available")
@@ -312,11 +313,7 @@ private struct MetricChartCard: View {
             if let selectedPoint, let selectedX = selectionLayout.selectedX {
                 selectedValueCallout(for: selectedPoint)
                     .position(
-                        x: clamped(
-                            selectedX,
-                            min: selectionLayout.plotFrame.minX,
-                            max: min(selectionLayout.plotFrame.maxX, geometry.size.width)
-                        ),
+                        x: selectedX,
                         y: geometry.size.height / 2
                     )
             } else {
@@ -324,7 +321,7 @@ private struct MetricChartCard: View {
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
             }
         }
-        .frame(height: 24)
+        .frame(height: 14)
     }
 
     private var selectedPoint: MetricChartDataPoint? {
@@ -338,8 +335,6 @@ private struct MetricChartCard: View {
     private var selectionPlaceholder: some View {
         Text("00:00 PM")
             .font(.caption.weight(.semibold))
-            .padding(.vertical, 5)
-            .padding(.horizontal, 8)
             .opacity(0)
     }
 
@@ -347,20 +342,12 @@ private struct MetricChartCard: View {
         Text(formattedTime(point.date))
             .font(.caption.weight(.semibold))
             .foregroundStyle(.primary)
-            .padding(.vertical, 5)
-            .padding(.horizontal, 8)
     }
 
     private func selectedValueCallout(for point: MetricChartDataPoint) -> some View {
         Text(formattedValue(point.value))
             .font(.caption.weight(.semibold))
             .foregroundStyle(.primary)
-            .padding(.vertical, 5)
-            .padding(.horizontal, 8)
-    }
-
-    private func clamped(_ value: CGFloat, min lowerBound: CGFloat, max upperBound: CGFloat) -> CGFloat {
-        min(max(value, lowerBound), upperBound)
     }
 
     private func formattedValue(_ value: Double) -> String {
