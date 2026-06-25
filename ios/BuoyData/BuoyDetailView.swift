@@ -4,6 +4,7 @@
 //
 
 import Charts
+import MapKit
 import SwiftUI
 
 struct BuoyDetailView: View {
@@ -20,6 +21,11 @@ struct BuoyDetailView: View {
 
     private var historyPoints: [BuoyHistoryPoint] {
         (historyData?.points ?? []).filter { $0.date != nil }
+    }
+
+    private var buoyCoordinate: CLLocationCoordinate2D? {
+        guard let lat = currentData?.lat, let lon = currentData?.lon else { return nil }
+        return CLLocationCoordinate2D(latitude: lat, longitude: lon)
     }
 
     var body: some View {
@@ -112,6 +118,13 @@ struct BuoyDetailView: View {
                 value: \.waterTempF,
                 yScale: .roundedToFive
             )
+
+            if let buoyCoordinate {
+                BuoyLocationMapCard(
+                    coordinate: buoyCoordinate,
+                    title: buoyName ?? "Station \(buoy.id)"
+                )
+            }
         }
     }
 
@@ -696,6 +709,38 @@ private struct HeightChartLegendItem: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
+    }
+}
+
+private struct BuoyLocationMapCard: View {
+    let coordinate: CLLocationCoordinate2D
+    let title: String
+
+    private var region: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 1.2, longitudeDelta: 1.2)
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Location")
+                .font(.subheadline.weight(.semibold))
+
+            Map(initialPosition: .region(region)) {
+                Marker(title, coordinate: coordinate)
+                    .tint(.red)
+            }
+            .allowsHitTesting(false)
+            .frame(height: 150)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color("FavoriteCardSurface"))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
     }
 }
 

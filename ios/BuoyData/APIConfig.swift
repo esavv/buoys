@@ -64,6 +64,8 @@ struct BuoyResponse: Codable {
     let swellDirection: String?
     let waterTempC: String?
     let meanWaveDirectionDeg: String?
+    let lat: Double?
+    let lon: Double?
     let errorMsg: String?
     
     enum CodingKeys: String, CodingKey {
@@ -76,6 +78,7 @@ struct BuoyResponse: Codable {
         case swellDirection = "swell_direction"
         case waterTempC = "water_temp_c"
         case meanWaveDirectionDeg = "mean_wave_direction_deg"
+        case lat, lon
         case errorMsg = "error_msg"
     }
 
