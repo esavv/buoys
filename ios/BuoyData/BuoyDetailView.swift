@@ -260,7 +260,7 @@ private struct MetricChartCard: View {
                 AxisValueLabel {
                     if let axisValue = value.as(Double.self) {
                         Text("\(formattedAxisValue(axisValue)) \(axisUnit)")
-                            .offset(x: 4)
+                            .offset(x: 4, y: 6)
                     }
                 }
             }
@@ -321,7 +321,7 @@ private struct MetricChartCard: View {
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
             }
         }
-        .frame(height: 14)
+        .frame(height: 18)
     }
 
     private var selectedPoint: MetricChartDataPoint? {
@@ -347,7 +347,7 @@ private struct MetricChartCard: View {
     private func selectedValueCallout(for point: MetricChartDataPoint) -> some View {
         Text(formattedValue(point.value))
             .font(.caption.weight(.semibold))
-            .foregroundStyle(.primary)
+            .foregroundStyle(Color.accentColor)
     }
 
     private func formattedValue(_ value: Double) -> String {
