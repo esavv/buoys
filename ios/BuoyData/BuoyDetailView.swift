@@ -14,12 +14,8 @@ struct BuoyDetailView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
 
-    private var stationTitle: String {
-        "Station \(buoy.id)"
-    }
-
-    private var buoyName: String {
-        currentData?.name ?? historyData?.name ?? "Station \(buoy.id)"
+    private var buoyName: String? {
+        currentData?.name ?? historyData?.name
     }
 
     private var historyPoints: [BuoyHistoryPoint] {
@@ -49,7 +45,6 @@ struct BuoyDetailView: View {
             .padding()
         }
         .background(Color("FavoriteScreenBackground").ignoresSafeArea())
-        .navigationTitle(stationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .task(id: buoy.id) {
@@ -59,9 +54,20 @@ struct BuoyDetailView: View {
 
     private var headerCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(buoyName)
-                .font(.title3.weight(.semibold))
-                .lineLimit(2)
+            VStack(alignment: .leading, spacing: 2) {
+                if let buoyName {
+                    Text(buoyName)
+                        .font(.title3.weight(.semibold))
+                        .lineLimit(2)
+
+                    Text("Station \(buoy.id)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Station \(buoy.id)")
+                        .font(.title3.weight(.semibold))
+                }
+            }
 
             if let currentData, currentData.status == "success" {
                 FavoriteBuoyReadings(data: currentData)
