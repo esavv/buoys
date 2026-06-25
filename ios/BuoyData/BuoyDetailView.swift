@@ -179,7 +179,7 @@ private struct MetricChartCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
 
@@ -193,7 +193,8 @@ private struct MetricChartCard: View {
                     .frame(height: 160)
             }
         }
-        .padding(.vertical)
+        .padding(.top, 10)
+        .padding(.bottom, 16)
         .padding(.leading, 8)
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -249,6 +250,17 @@ private struct MetricChartCard: View {
                     if let axisValue = value.as(Double.self) {
                         Text("\(formattedAxisValue(axisValue)) \(axisUnit)")
                             .offset(x: 4)
+                    }
+                }
+            }
+        }
+        .chartXAxis {
+            AxisMarks { value in
+                AxisGridLine()
+                AxisTick()
+                AxisValueLabel {
+                    if let date = value.as(Date.self) {
+                        Text(formattedAxisTime(date))
                     }
                 }
             }
@@ -309,6 +321,12 @@ private struct MetricChartCard: View {
     private func formattedTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
+
+    private func formattedAxisTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h a"
         return formatter.string(from: date)
     }
 }
