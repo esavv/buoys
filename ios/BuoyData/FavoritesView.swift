@@ -13,6 +13,7 @@ struct FavoritesView: View {
     @Binding var selectedTab: AppTab
     @State private var showingAddSheet = false
     @State private var editMode: EditMode = .inactive
+    @State private var selectedBuoy: FavoriteBuoy?
 
     private let addBuoyComposerAnimation = Animation.spring(response: 0.36, dampingFraction: 0.86)
 
@@ -98,6 +99,9 @@ struct FavoritesView: View {
                     }
                 }
             }
+            .navigationDestination(item: $selectedBuoy) { buoy in
+                BuoyDetailView(buoy: buoy)
+            }
         }
     }
 
@@ -122,18 +126,13 @@ struct FavoritesView: View {
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder
     private func favoriteRow(for buoy: FavoriteBuoy, isWidgetBuoy: Bool) -> some View {
-        if editMode == .active {
-            FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: isWidgetBuoy)
-        } else {
-            NavigationLink {
-                BuoyDetailView(buoy: buoy)
-            } label: {
-                FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: isWidgetBuoy)
+        FavoriteBuoyRow(buoy: buoy, isWidgetBuoy: isWidgetBuoy)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard editMode == .inactive else { return }
+                selectedBuoy = buoy
             }
-            .buttonStyle(.plain)
-        }
     }
 
     private func dismissAddComposer() {
