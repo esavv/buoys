@@ -738,7 +738,7 @@ private struct SwellPeriodDirectionChartCard: View {
         self.data = sortedData
         self.arrowPoints = Self.sampleDirectionPoints(sortedData)
 
-        let yScaleDomain = MetricChartYScale.zeroBasedBuffered.domain(for: sortedData.map { $0.period })
+        let yScaleDomain = Self.periodDomain(for: sortedData.map { $0.period })
         self.yScaleDomain = yScaleDomain
         self.fillBaseline = yScaleDomain?.lowerBound ?? 0
     }
@@ -855,7 +855,7 @@ private struct SwellPeriodDirectionChartCard: View {
                                let yPosition = proxy.position(forY: point.period),
                                let directionDegrees = point.directionDegrees {
                                 Image(systemName: "location.north.fill")
-                                    .font(.caption2.weight(.semibold))
+                                    .font(.caption.weight(.semibold))
                                     .foregroundStyle(.secondary)
                                     .rotationEffect(.degrees(directionDegrees + 180))
                                     .position(
@@ -963,18 +963,41 @@ private struct SwellPeriodDirectionChartCard: View {
         return formatter.string(from: date)
     }
 
-    private static func sampleDirectionPoints(_ points: [SwellPeriodDirectionPoint]) -> [SwellPeriodDirectionPoint] {
-        var sampledPoints: [SwellPeriodDirectionPoint] = []
-        var lastSampleDate: Date?
-        let interval: TimeInterval = 4 * 60 * 60
+    private static func periodDomain(for values: [Double]) -> ClosedRange<Double>? {
+        guard let minValue = values.min(), let maxValue = values.max() else { return nil }
 
-        for point in points where point.directionDegrees != nil {
-            if let lastSampleDate, point.date.timeIntervalSince(lastSampleDate) < interval {
-                continue
+        let margin = 2.0
+        let lower = max(0, floor(minValue - margin))
+        var upper = ceil(maxValue + margin)
+
+        if upper <= lower {
+            upper = lower + 1
+        }
+
+        return lower...upper
+    }
+
+    private static func sampleDirectionPoints(_ points: [SwellPeriodDirectionPoint]) -> [SwellPeriodDirectionPoint] {
+        let directionPoints = points.filter { $0.directionDegrees != nil }
+        guard let startDate = points.first?.date, let endDate = points.last?.date else { return [] }
+
+        var sampledPoints: [SwellPeriodDirectionPoint] = []
+        let interval: TimeInterval = 4 * 60 * 60
+        var targetDate = startDate.addingTimeInterval(interval / 2)
+
+        while targetDate <= endDate {
+            if let closestPoint = directionPoints.min(by: {
+                abs($0.date.timeIntervalSince(targetDate)) < abs($1.date.timeIntervalSince(targetDate))
+            }) {
+                if let lastPoint = sampledPoints.last, lastPoint.id == closestPoint.id {
+                    targetDate = targetDate.addingTimeInterval(interval)
+                    continue
+                }
+
+                sampledPoints.append(closestPoint)
             }
 
-            sampledPoints.append(point)
-            lastSampleDate = point.date
+            targetDate = targetDate.addingTimeInterval(interval)
         }
 
         return sampledPoints
