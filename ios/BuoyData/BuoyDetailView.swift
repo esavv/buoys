@@ -237,9 +237,6 @@ private struct MetricChartCard: View {
                 )
                 .foregroundStyle(Color.accentColor)
                 .symbolSize(42)
-                .annotation(position: .top, alignment: .center) {
-                    selectedCallout(for: selectedPoint)
-                }
             }
         }
         .chartYAxis {
@@ -266,6 +263,30 @@ private struct MetricChartCard: View {
             }
         }
         .chartXSelection(value: $selectedDate)
+        .chartOverlay { proxy in
+            GeometryReader { geometry in
+                if let selectedPoint,
+                   let selectedX = proxy.position(forX: selectedPoint.date),
+                   let plotFrameAnchor = proxy.plotFrame {
+                    let plotFrame = geometry[plotFrameAnchor]
+                    let absoluteX = plotFrame.minX + selectedX
+
+                    ZStack {
+                        selectedTimeCallout(for: selectedPoint)
+                            .position(
+                                x: plotFrame.midX,
+                                y: max(plotFrame.minY - 10, 12)
+                            )
+
+                        selectedValueCallout(for: selectedPoint)
+                            .position(
+                                x: clamped(absoluteX, min: plotFrame.minX + 42, max: plotFrame.maxX - 42),
+                                y: plotFrame.minY + 18
+                            )
+                    }
+                }
+            }
+        }
 
         if let yScaleDomain {
             baseChart.chartYScale(domain: yScaleDomain)
@@ -282,24 +303,38 @@ private struct MetricChartCard: View {
         }
     }
 
-    private func selectedCallout(for point: MetricChartDataPoint) -> some View {
-        VStack(spacing: 2) {
-            Text(formattedValue(point.value))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.primary)
-            Text(formattedTime(point.date))
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 5)
-        .padding(.horizontal, 8)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.12))
-        }
-        .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+    private func selectedTimeCallout(for point: MetricChartDataPoint) -> some View {
+        Text(formattedTime(point.date))
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(.secondary)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.12))
+            }
+            .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+    }
+
+    private func selectedValueCallout(for point: MetricChartDataPoint) -> some View {
+        Text(formattedValue(point.value))
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.primary)
+            .padding(.vertical, 5)
+            .padding(.horizontal, 8)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.12))
+            }
+            .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+    }
+
+    private func clamped(_ value: CGFloat, min lowerBound: CGFloat, max upperBound: CGFloat) -> CGFloat {
+        min(max(value, lowerBound), upperBound)
     }
 
     private func formattedValue(_ value: Double) -> String {
