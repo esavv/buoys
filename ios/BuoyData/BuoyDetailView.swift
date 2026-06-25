@@ -122,7 +122,7 @@ struct BuoyDetailView: View {
             if let buoyCoordinate {
                 BuoyLocationMapCard(
                     coordinate: buoyCoordinate,
-                    title: buoyName ?? "Station \(buoy.id)"
+                    title: "Station \(buoy.id)"
                 )
             }
         }
@@ -724,21 +724,13 @@ private struct BuoyLocationMapCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Location")
-                .font(.subheadline.weight(.semibold))
-
-            Map(initialPosition: .region(region)) {
-                Marker(title, coordinate: coordinate)
-                    .tint(.red)
-            }
-            .allowsHitTesting(false)
-            .frame(height: 150)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+        Map(initialPosition: .region(region)) {
+            Marker(title, coordinate: coordinate)
+                .tint(.red)
         }
-        .padding()
+        .allowsHitTesting(false)
+        .frame(height: 150)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color("FavoriteCardSurface"))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
     }
