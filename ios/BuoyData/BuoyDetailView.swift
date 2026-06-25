@@ -193,7 +193,9 @@ private struct MetricChartCard: View {
                     .frame(height: 160)
             }
         }
-        .padding()
+        .padding(.vertical)
+        .padding(.leading, 8)
+        .padding(.trailing, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("FavoriteCardSurface"))
         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -245,7 +247,8 @@ private struct MetricChartCard: View {
                 AxisTick()
                 AxisValueLabel {
                     if let axisValue = value.as(Double.self) {
-                        Text("\(formattedAxisValue(axisValue)) \(unit)")
+                        Text("\(formattedAxisValue(axisValue)) \(axisUnit)")
+                            .offset(x: 4)
                     }
                 }
             }
@@ -289,6 +292,10 @@ private struct MetricChartCard: View {
 
     private func formattedValue(_ value: Double) -> String {
         "\(String(format: "%.1f", value)) \(unit)"
+    }
+
+    private var axisUnit: String {
+        unit == "°F" ? "F" : unit
     }
 
     private func formattedAxisValue(_ value: Double) -> String {
