@@ -1144,11 +1144,21 @@ private struct ChartYAxisSpec {
 
     private static func niceSteps(for span: Double) -> [Double] {
         let bases = [0.5, 1.0, 2.0, 5.0]
-        return (-2...3).flatMap { exponent in
-            bases.map { $0 * pow(10, Double(exponent)) }
+        let maxStep = max(100, span * 10)
+        var steps: [Double] = []
+
+        for exponent in -2...3 {
+            let multiplier = pow(10, Double(exponent))
+
+            for base in bases {
+                let step = base * multiplier
+                if step > 0 && step <= maxStep {
+                    steps.append(step)
+                }
+            }
         }
-        .filter { $0 > 0 && $0 <= max(100, span * 10) }
-        .sorted()
+
+        return steps.sorted()
     }
 
     private static func tickValues(from lower: Double, through upper: Double, by step: Double) -> [Double] {
