@@ -66,10 +66,7 @@ struct SwellPeriodDirectionChartCard: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 140)
             } else {
-                selectedValueRow
-
-                chart
-                    .frame(height: 160)
+                chartContent
             }
         }
         .padding(.top, 10)
@@ -80,6 +77,16 @@ struct SwellPeriodDirectionChartCard: View {
         .background(Color("FavoriteCardSurface"))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
+    }
+
+    private var chartContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            selectedValueRow
+
+            chart
+                .frame(height: 160)
+        }
+        .padding(.leading, -8)
     }
 
     @ViewBuilder
