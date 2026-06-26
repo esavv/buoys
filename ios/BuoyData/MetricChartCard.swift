@@ -9,9 +9,9 @@ import SwiftUI
 struct MetricChartCard: View {
     let title: String
     let unit: String
-    let data: [MetricChartDataPoint]
-    let yAxisSpec: ChartYAxisSpec?
-    let fillBaseline: Double
+    private let data: [MetricChartDataPoint]
+    private let yAxisSpec: ChartYAxisSpec?
+    private let fillBaseline: Double
     @State private var selectedDate: Date?
     @State private var selectionLayout = MetricChartSelectionLayout()
 

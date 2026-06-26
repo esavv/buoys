@@ -12,10 +12,10 @@ struct CombinedHeightChartCard: View {
     private let waveColor = Color.accentColor
     private let swellColor = Color.green
 
-    let data: [HeightChartDataPoint]
-    let seriesData: [HeightChartSeriesPoint]
-    let yAxisSpec: ChartYAxisSpec?
-    let fillBaseline: Double
+    private let data: [HeightChartDataPoint]
+    private let seriesData: [HeightChartSeriesPoint]
+    private let yAxisSpec: ChartYAxisSpec?
+    private let fillBaseline: Double
 
     private var swellSeriesData: [HeightChartSeriesPoint] {
         seriesData.filter { $0.series == .swell }

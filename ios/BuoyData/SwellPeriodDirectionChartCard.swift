@@ -10,10 +10,10 @@ struct SwellPeriodDirectionChartCard: View {
     private let title = "Swell Period & Direction"
     private let unit = "s"
 
-    let data: [SwellPeriodDirectionPoint]
-    let arrowPoints: [SwellPeriodDirectionPoint]
-    let yAxisSpec: ChartYAxisSpec?
-    let fillBaseline: Double
+    private let data: [SwellPeriodDirectionPoint]
+    private let arrowPoints: [SwellPeriodDirectionPoint]
+    private let yAxisSpec: ChartYAxisSpec?
+    private let fillBaseline: Double
 
     @State private var selectedDate: Date?
     @State private var selectionLayout = MetricChartSelectionLayout()
