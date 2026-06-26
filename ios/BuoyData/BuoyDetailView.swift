@@ -934,7 +934,7 @@ private struct SwellPeriodDirectionChartCard: View {
     private func directionArrow(degrees: Double) -> some View {
         Image(systemName: "location.north.fill")
             .font(.callout.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(.secondary)
             .rotationEffect(.degrees(degrees + 180))
     }
 
