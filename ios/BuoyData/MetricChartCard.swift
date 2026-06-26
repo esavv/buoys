@@ -144,7 +144,7 @@ struct MetricChartCard: View {
             AxisMarks { value in
                 AxisGridLine()
                 AxisTick()
-                AxisValueLabel(anchor: .topTrailing) {
+                AxisValueLabel {
                     if let date = value.as(Date.self) {
                         Text(formattedAxisTime(date))
                     }
