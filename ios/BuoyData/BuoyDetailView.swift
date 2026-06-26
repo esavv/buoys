@@ -416,6 +416,14 @@ private struct CombinedHeightChartCard: View {
     let yAxisSpec: ChartYAxisSpec?
     let fillBaseline: Double
 
+    private var swellSeriesData: [HeightChartSeriesPoint] {
+        seriesData.filter { $0.series == .swell }
+    }
+
+    private var waveSeriesData: [HeightChartSeriesPoint] {
+        seriesData.filter { $0.series == .wave }
+    }
+
     @State private var selectedDate: Date?
     @State private var selectionLayout = MetricChartSelectionLayout()
 
@@ -495,22 +503,42 @@ private struct CombinedHeightChartCard: View {
     @ViewBuilder
     private var chart: some View {
         let baseChart = Chart {
-            ForEach(seriesData) { point in
+            ForEach(swellSeriesData) { point in
                 AreaMark(
                     x: .value("Time", point.date),
                     yStart: .value("Baseline", fillBaseline),
-                    yEnd: .value("Height", point.value)
+                    yEnd: .value("Swell Height", point.value)
                 )
                 .interpolationMethod(.catmullRom)
-                .foregroundStyle(by: .value("Series", point.series.label))
-                .opacity(point.series == .swell ? 0.16 : 0.14)
+                .foregroundStyle(fillGradient(for: swellColor, opacity: 0.16))
+            }
 
+            ForEach(waveSeriesData) { point in
+                AreaMark(
+                    x: .value("Time", point.date),
+                    yStart: .value("Baseline", fillBaseline),
+                    yEnd: .value("Wave Height", point.value)
+                )
+                .interpolationMethod(.catmullRom)
+                .foregroundStyle(fillGradient(for: waveColor, opacity: 0.14))
+            }
+
+            ForEach(swellSeriesData) { point in
                 LineMark(
                     x: .value("Time", point.date),
-                    y: .value("Height", point.value)
+                    y: .value("Swell Height", point.value)
                 )
                 .interpolationMethod(.catmullRom)
-                .foregroundStyle(by: .value("Series", point.series.label))
+                .foregroundStyle(swellColor)
+            }
+
+            ForEach(waveSeriesData) { point in
+                LineMark(
+                    x: .value("Time", point.date),
+                    y: .value("Wave Height", point.value)
+                )
+                .interpolationMethod(.catmullRom)
+                .foregroundStyle(waveColor)
             }
 
             if let selectedPoint {
@@ -537,10 +565,6 @@ private struct CombinedHeightChartCard: View {
                 }
             }
         }
-        .chartForegroundStyleScale([
-            HeightChartSeries.swell.label: swellColor,
-            HeightChartSeries.wave.label: waveColor,
-        ])
         .chartLegend(.hidden)
         .chartYAxis {
             if let yAxisSpec {
@@ -669,6 +693,14 @@ private struct CombinedHeightChartCard: View {
 
     private func formattedValue(_ value: Double) -> String {
         "\(String(format: "%.1f", value)) \(unit)"
+    }
+
+    private func fillGradient(for color: Color, opacity: Double) -> LinearGradient {
+        LinearGradient(
+            colors: [color.opacity(opacity), color.opacity(0.02)],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 
     private func formattedAxisValue(_ value: Double) -> String {
