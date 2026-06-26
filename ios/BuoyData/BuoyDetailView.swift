@@ -111,7 +111,7 @@ struct BuoyDetailView: View {
                 unit: "°F",
                 points: historyPoints,
                 value: \.waterTempF,
-                yScale: .roundedToFive
+                yScale: .temperature
             )
 
             if let buoyCoordinate {
@@ -162,7 +162,7 @@ private struct MetricChartCard: View {
     let title: String
     let unit: String
     let data: [MetricChartDataPoint]
-    let yScaleDomain: ClosedRange<Double>?
+    let yAxisSpec: ChartYAxisSpec?
     let fillBaseline: Double
     @State private var selectedDate: Date?
     @State private var selectionLayout = MetricChartSelectionLayout()
@@ -181,9 +181,9 @@ private struct MetricChartCard: View {
             return MetricChartDataPoint(date: date, value: chartValue)
         }
         self.data = data
-        let yScaleDomain = yScale.domain(for: data.map { $0.value })
-        self.yScaleDomain = yScaleDomain
-        self.fillBaseline = yScaleDomain?.lowerBound ?? 0
+        let yAxisSpec = yScale.axisSpec(for: data.map { $0.value })
+        self.yAxisSpec = yAxisSpec
+        self.fillBaseline = yAxisSpec?.domain.lowerBound ?? 0
     }
 
     var body: some View {
@@ -261,13 +261,26 @@ private struct MetricChartCard: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading) { value in
-                AxisGridLine()
-                AxisTick()
-                AxisValueLabel {
-                    if let axisValue = value.as(Double.self) {
-                        Text("\(formattedAxisValue(axisValue)) \(axisUnit)")
-                            .offset(x: 4, y: 6)
+            if let yAxisSpec {
+                AxisMarks(position: .leading, values: yAxisSpec.ticks) { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel {
+                        if let axisValue = value.as(Double.self) {
+                            Text("\(formattedAxisValue(axisValue)) \(axisUnit)")
+                                .offset(x: 4, y: 6)
+                        }
+                    }
+                }
+            } else {
+                AxisMarks(position: .leading) { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel {
+                        if let axisValue = value.as(Double.self) {
+                            Text("\(formattedAxisValue(axisValue)) \(axisUnit)")
+                                .offset(x: 4, y: 6)
+                        }
                     }
                 }
             }
@@ -308,8 +321,8 @@ private struct MetricChartCard: View {
             selectionLayout = layout
         }
 
-        if let yScaleDomain {
-            baseChart.chartYScale(domain: yScaleDomain)
+        if let yAxisSpec {
+            baseChart.chartYScale(domain: yAxisSpec.domain)
         } else {
             baseChart
         }
@@ -400,7 +413,7 @@ private struct CombinedHeightChartCard: View {
 
     let data: [HeightChartDataPoint]
     let seriesData: [HeightChartSeriesPoint]
-    let yScaleDomain: ClosedRange<Double>?
+    let yAxisSpec: ChartYAxisSpec?
     let fillBaseline: Double
 
     @State private var selectedDate: Date?
@@ -434,9 +447,9 @@ private struct CombinedHeightChartCard: View {
         let values: [Double] = data.flatMap { point in
             [point.swellHeight, point.waveHeight].compactMap { $0 }
         }
-        let yScaleDomain = MetricChartYScale.zeroBasedBuffered.domain(for: values)
-        self.yScaleDomain = yScaleDomain
-        self.fillBaseline = yScaleDomain?.lowerBound ?? 0
+        let yAxisSpec = MetricChartYScale.zeroBasedBuffered.axisSpec(for: values)
+        self.yAxisSpec = yAxisSpec
+        self.fillBaseline = yAxisSpec?.domain.lowerBound ?? 0
     }
 
     var body: some View {
@@ -530,13 +543,26 @@ private struct CombinedHeightChartCard: View {
         ])
         .chartLegend(.hidden)
         .chartYAxis {
-            AxisMarks(position: .leading) { value in
-                AxisGridLine()
-                AxisTick()
-                AxisValueLabel {
-                    if let axisValue = value.as(Double.self) {
-                        Text("\(formattedAxisValue(axisValue)) \(unit)")
-                            .offset(x: 4, y: 6)
+            if let yAxisSpec {
+                AxisMarks(position: .leading, values: yAxisSpec.ticks) { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel {
+                        if let axisValue = value.as(Double.self) {
+                            Text("\(formattedAxisValue(axisValue)) \(unit)")
+                                .offset(x: 4, y: 6)
+                        }
+                    }
+                }
+            } else {
+                AxisMarks(position: .leading) { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel {
+                        if let axisValue = value.as(Double.self) {
+                            Text("\(formattedAxisValue(axisValue)) \(unit)")
+                                .offset(x: 4, y: 6)
+                        }
                     }
                 }
             }
@@ -577,8 +603,8 @@ private struct CombinedHeightChartCard: View {
             selectionLayout = layout
         }
 
-        if let yScaleDomain {
-            baseChart.chartYScale(domain: yScaleDomain)
+        if let yAxisSpec {
+            baseChart.chartYScale(domain: yAxisSpec.domain)
         } else {
             baseChart
         }
@@ -716,7 +742,7 @@ private struct SwellPeriodDirectionChartCard: View {
 
     let data: [SwellPeriodDirectionPoint]
     let arrowPoints: [SwellPeriodDirectionPoint]
-    let yScaleDomain: ClosedRange<Double>?
+    let yAxisSpec: ChartYAxisSpec?
     let fillBaseline: Double
 
     @State private var selectedDate: Date?
@@ -739,9 +765,13 @@ private struct SwellPeriodDirectionChartCard: View {
         self.data = sortedData
         self.arrowPoints = Self.sampleDirectionPoints(sortedData)
 
-        let yScaleDomain = Self.periodDomain(for: sortedData.map { $0.period })
-        self.yScaleDomain = yScaleDomain
-        self.fillBaseline = yScaleDomain?.lowerBound ?? 0
+        let yAxisSpec = ChartYAxisSpec.nicePadded(
+            for: sortedData.map { $0.period },
+            padding: 2,
+            lowerLimit: 0
+        )
+        self.yAxisSpec = yAxisSpec
+        self.fillBaseline = yAxisSpec?.domain.lowerBound ?? 0
     }
 
     var body: some View {
@@ -813,13 +843,26 @@ private struct SwellPeriodDirectionChartCard: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading) { value in
-                AxisGridLine()
-                AxisTick()
-                AxisValueLabel {
-                    if let axisValue = value.as(Double.self) {
-                        Text("\(formattedAxisValue(axisValue)) \(unit)")
-                            .offset(x: 4, y: 6)
+            if let yAxisSpec {
+                AxisMarks(position: .leading, values: yAxisSpec.ticks) { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel {
+                        if let axisValue = value.as(Double.self) {
+                            Text("\(formattedAxisValue(axisValue)) \(unit)")
+                                .offset(x: 4, y: 6)
+                        }
+                    }
+                }
+            } else {
+                AxisMarks(position: .leading) { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel {
+                        if let axisValue = value.as(Double.self) {
+                            Text("\(formattedAxisValue(axisValue)) \(unit)")
+                                .offset(x: 4, y: 6)
+                        }
                     }
                 }
             }
@@ -886,8 +929,8 @@ private struct SwellPeriodDirectionChartCard: View {
             selectionLayout = layout
         }
 
-        if let yScaleDomain {
-            baseChart.chartYScale(domain: yScaleDomain)
+        if let yAxisSpec {
+            baseChart.chartYScale(domain: yAxisSpec.domain)
         } else {
             baseChart
         }
@@ -973,20 +1016,6 @@ private struct SwellPeriodDirectionChartCard: View {
         return formatter.string(from: date)
     }
 
-    private static func periodDomain(for values: [Double]) -> ClosedRange<Double>? {
-        guard let minValue = values.min(), let maxValue = values.max() else { return nil }
-
-        let margin = 2.0
-        let lower = max(0, floor(minValue - margin))
-        var upper = ceil(maxValue + margin)
-
-        if upper <= lower {
-            upper = lower + 1
-        }
-
-        return lower...upper
-    }
-
     private static func sampleDirectionPoints(_ points: [SwellPeriodDirectionPoint]) -> [SwellPeriodDirectionPoint] {
         let directionPoints = points.filter { $0.directionDegrees != nil }
         guard let startDate = points.first?.date, let endDate = points.last?.date else { return [] }
@@ -1065,29 +1094,86 @@ private struct MetricChartSelectionLayoutKey: PreferenceKey {
     }
 }
 
-private enum MetricChartYScale {
-    case zeroBasedBuffered
-    case roundedToFive
+private struct ChartYAxisSpec {
+    let domain: ClosedRange<Double>
+    let ticks: [Double]
 
-    func domain(for values: [Double]) -> ClosedRange<Double>? {
-        switch self {
-        case .zeroBasedBuffered:
-            guard let maxValue = values.max() else { return nil }
+    static func zeroBased(for values: [Double]) -> ChartYAxisSpec? {
+        nicePadded(for: values, padding: 1, lowerLimit: 0)
+    }
 
-            let upper = max(1, floor(maxValue) + 1)
-            return 0...upper
-        case .roundedToFive:
-            guard let minValue = values.min(), let maxValue = values.max() else { return nil }
+    static func temperature(for values: [Double]) -> ChartYAxisSpec? {
+        nicePadded(for: values, padding: 1, minRange: 5)
+    }
 
-            let interval = 5.0
-            let lower = floor(minValue / interval) * interval
-            var upper = ceil(maxValue / interval) * interval
+    static func nicePadded(
+        for values: [Double],
+        padding: Double,
+        minRange: Double? = nil,
+        lowerLimit: Double? = nil,
+        maxTickCount: Int = 5
+    ) -> ChartYAxisSpec? {
+        guard let minValue = values.min(), let maxValue = values.max() else { return nil }
 
-            if upper <= lower {
-                upper = lower + interval
+        let rawLower = minValue - padding
+        let lowerBase = lowerLimit.map { max($0, rawLower) } ?? rawLower
+        let upperBase = maxValue + (padding / 2)
+        let paddedUpper = maxValue + padding
+        let desiredSpan = max(minRange ?? 0, paddedUpper - lowerBase)
+
+        for step in niceSteps(for: desiredSpan) {
+            let lower = lowerLimit.map { max($0, floor(lowerBase / step) * step) } ?? floor(lowerBase / step) * step
+            var upper = ceil(upperBase / step) * step
+
+            if let minRange, upper - lower < minRange {
+                upper = ceil((lower + minRange) / step) * step
             }
 
-            return lower...upper
+            if upper <= lower {
+                upper = lower + step
+            }
+
+            let ticks = tickValues(from: lower, through: upper, by: step)
+            if ticks.count <= maxTickCount {
+                return ChartYAxisSpec(domain: lower...upper, ticks: ticks)
+            }
+        }
+
+        return nil
+    }
+
+    private static func niceSteps(for span: Double) -> [Double] {
+        let bases = [0.5, 1.0, 2.0, 5.0]
+        return (-2...3).flatMap { exponent in
+            bases.map { $0 * pow(10, Double(exponent)) }
+        }
+        .filter { $0 > 0 && $0 <= max(100, span * 10) }
+        .sorted()
+    }
+
+    private static func tickValues(from lower: Double, through upper: Double, by step: Double) -> [Double] {
+        var values: [Double] = []
+        var value = lower
+
+        while value <= upper + (step / 1000) {
+            values.append((value * 1000).rounded() / 1000)
+            value += step
+        }
+
+        return values
+    }
+}
+
+private enum MetricChartYScale {
+    case zeroBasedBuffered
+    case temperature
+
+    func axisSpec(for values: [Double]) -> ChartYAxisSpec? {
+        switch self {
+        case .zeroBasedBuffered:
+            return ChartYAxisSpec.zeroBased(for: values)
+        case .temperature:
+            return ChartYAxisSpec.temperature(for: values)
         }
     }
 }
