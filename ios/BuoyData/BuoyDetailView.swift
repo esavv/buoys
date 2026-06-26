@@ -510,7 +510,7 @@ private struct CombinedHeightChartCard: View {
                     yEnd: .value("Swell Height", point.value)
                 )
                 .interpolationMethod(.catmullRom)
-                .foregroundStyle(fillGradient(for: swellColor, opacity: 0.16))
+                .foregroundStyle(by: .value("Series", HeightChartSeries.swell.fillLabel))
             }
 
             ForEach(waveSeriesData) { point in
@@ -520,7 +520,7 @@ private struct CombinedHeightChartCard: View {
                     yEnd: .value("Wave Height", point.value)
                 )
                 .interpolationMethod(.catmullRom)
-                .foregroundStyle(fillGradient(for: waveColor, opacity: 0.14))
+                .foregroundStyle(by: .value("Series", HeightChartSeries.wave.fillLabel))
             }
 
             ForEach(swellSeriesData) { point in
@@ -529,7 +529,7 @@ private struct CombinedHeightChartCard: View {
                     y: .value("Swell Height", point.value)
                 )
                 .interpolationMethod(.catmullRom)
-                .foregroundStyle(swellColor)
+                .foregroundStyle(by: .value("Series", HeightChartSeries.swell.label))
             }
 
             ForEach(waveSeriesData) { point in
@@ -538,7 +538,7 @@ private struct CombinedHeightChartCard: View {
                     y: .value("Wave Height", point.value)
                 )
                 .interpolationMethod(.catmullRom)
-                .foregroundStyle(waveColor)
+                .foregroundStyle(by: .value("Series", HeightChartSeries.wave.label))
             }
 
             if let selectedPoint {
@@ -565,6 +565,20 @@ private struct CombinedHeightChartCard: View {
                 }
             }
         }
+        .chartForegroundStyleScale(
+            domain: [
+                HeightChartSeries.swell.fillLabel,
+                HeightChartSeries.wave.fillLabel,
+                HeightChartSeries.swell.label,
+                HeightChartSeries.wave.label,
+            ],
+            range: [
+                AnyShapeStyle(fillGradient(for: swellColor, opacity: 0.16)),
+                AnyShapeStyle(fillGradient(for: waveColor, opacity: 0.14)),
+                AnyShapeStyle(swellColor),
+                AnyShapeStyle(waveColor),
+            ]
+        )
         .chartLegend(.hidden)
         .chartYAxis {
             if let yAxisSpec {
@@ -749,6 +763,10 @@ private enum HeightChartSeries {
         case .wave:
             return "Wave"
         }
+    }
+
+    var fillLabel: String {
+        "\(label) Fill"
     }
 }
 
