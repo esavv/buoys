@@ -20,7 +20,7 @@ struct MapView: View {
                 selectedStation: $selectedStation,
                 focusedStationID: $focusedStationID
             )
-                .ignoresSafeArea(.container, edges: .top)
+                .ignoresSafeArea()
 
             if let station = selectedStation {
                 StationCard(station: station) {
