@@ -809,12 +809,6 @@ private struct SwellPeriodDirectionChartCard: View {
                     .foregroundStyle(.secondary.opacity(0.45))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
 
-                PointMark(
-                    x: .value("Selected Time", selectedPoint.date),
-                    y: .value("Swell Period", selectedPoint.period)
-                )
-                .foregroundStyle(Color.accentColor)
-                .symbolSize(42)
             }
         }
         .chartYAxis {
@@ -850,18 +844,26 @@ private struct SwellPeriodDirectionChartCard: View {
                         .map { plotFrame.minX + $0 }
 
                     ZStack {
-                        ForEach(arrowPoints) { point in
-                            if let xPosition = proxy.position(forX: point.date),
-                               let yPosition = proxy.position(forY: point.period),
-                               let directionDegrees = point.directionDegrees {
-                                Image(systemName: "location.north.fill")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.secondary)
-                                    .rotationEffect(.degrees(directionDegrees + 180))
-                                    .position(
-                                        x: plotFrame.minX + xPosition,
-                                        y: plotFrame.minY + yPosition
-                                    )
+                        if let selectedPoint,
+                           let xPosition = proxy.position(forX: selectedPoint.date),
+                           let yPosition = proxy.position(forY: selectedPoint.period),
+                           let directionDegrees = selectedPoint.directionDegrees {
+                            directionArrow(degrees: directionDegrees)
+                                .position(
+                                    x: plotFrame.minX + xPosition,
+                                    y: plotFrame.minY + yPosition
+                                )
+                        } else {
+                            ForEach(arrowPoints) { point in
+                                if let xPosition = proxy.position(forX: point.date),
+                                   let yPosition = proxy.position(forY: point.period),
+                                   let directionDegrees = point.directionDegrees {
+                                    directionArrow(degrees: directionDegrees)
+                                        .position(
+                                            x: plotFrame.minX + xPosition,
+                                            y: plotFrame.minY + yPosition
+                                        )
+                                }
                             }
                         }
                     }
@@ -929,6 +931,13 @@ private struct SwellPeriodDirectionChartCard: View {
             .foregroundStyle(Color.accentColor)
     }
 
+    private func directionArrow(degrees: Double) -> some View {
+        Image(systemName: "location.north.fill")
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+            .rotationEffect(.degrees(degrees + 180))
+    }
+
     private func formattedValue(_ point: SwellPeriodDirectionPoint) -> String {
         let period = "\(String(format: "%.1f", point.period)) \(unit)"
 
@@ -983,7 +992,8 @@ private struct SwellPeriodDirectionChartCard: View {
 
         var sampledPoints: [SwellPeriodDirectionPoint] = []
         let interval: TimeInterval = 4 * 60 * 60
-        var targetDate = startDate.addingTimeInterval(interval / 2)
+        let initialOffset: TimeInterval = 90 * 60
+        var targetDate = startDate.addingTimeInterval(initialOffset)
 
         while targetDate <= endDate {
             if let closestPoint = directionPoints.min(by: {
