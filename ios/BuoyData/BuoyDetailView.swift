@@ -66,7 +66,7 @@ struct BuoyDetailView: View {
             VStack(alignment: .leading, spacing: 2) {
                 if let buoyName {
                     Text(buoyName)
-                        .font(.title3.weight(.semibold))
+                        .font(.headline)
                         .lineLimit(2)
 
                     Text("Station \(buoy.id)")
@@ -74,7 +74,7 @@ struct BuoyDetailView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     Text("Station \(buoy.id)")
-                        .font(.title3.weight(.semibold))
+                        .font(.headline)
                 }
             }
 
