@@ -100,6 +100,7 @@ struct BuoyDetailView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Last 24 Hours")
                 .font(.headline)
+                .padding(.leading, 16)
 
             CombinedHeightChartCard(points: historyPoints)
 
@@ -215,7 +216,7 @@ private struct MetricChartCard: View {
         }
         .padding(.top, 10)
         .padding(.bottom, 16)
-        .padding(.leading, 8)
+        .padding(.leading, 16)
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("FavoriteCardSurface"))
@@ -470,7 +471,7 @@ private struct CombinedHeightChartCard: View {
         }
         .padding(.top, 10)
         .padding(.bottom, 16)
-        .padding(.leading, 8)
+        .padding(.leading, 16)
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("FavoriteCardSurface"))
@@ -773,7 +774,7 @@ private struct SwellPeriodDirectionChartCard: View {
         }
         .padding(.top, 10)
         .padding(.bottom, 16)
-        .padding(.leading, 8)
+        .padding(.leading, 16)
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("FavoriteCardSurface"))
