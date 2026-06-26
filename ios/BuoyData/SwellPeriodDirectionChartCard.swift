@@ -120,7 +120,7 @@ struct SwellPeriodDirectionChartCard: View {
                     AxisValueLabel {
                         if let axisValue = value.as(Double.self) {
                             Text("\(formattedAxisValue(axisValue)) \(unit)")
-                                .offset(x: 4, y: 6)
+                                .offset(x: -2, y: 6)
                         }
                     }
                 }
@@ -131,7 +131,7 @@ struct SwellPeriodDirectionChartCard: View {
                     AxisValueLabel {
                         if let axisValue = value.as(Double.self) {
                             Text("\(formattedAxisValue(axisValue)) \(unit)")
-                                .offset(x: 4, y: 6)
+                                .offset(x: -2, y: 6)
                         }
                     }
                 }
