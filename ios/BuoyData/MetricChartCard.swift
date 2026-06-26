@@ -116,7 +116,7 @@ struct MetricChartCard: View {
                     AxisValueLabel {
                         if let axisValue = value.as(Double.self) {
                             Text("\(formattedAxisValue(axisValue)) \(axisUnit)")
-                                .offset(x: -2, y: 6)
+                                .offset(x: 0, y: 6)
                         }
                     }
                 }
@@ -127,7 +127,7 @@ struct MetricChartCard: View {
                     AxisValueLabel {
                         if let axisValue = value.as(Double.self) {
                             Text("\(formattedAxisValue(axisValue)) \(axisUnit)")
-                                .offset(x: -2, y: 6)
+                                .offset(x: 0, y: 6)
                         }
                     }
                 }
