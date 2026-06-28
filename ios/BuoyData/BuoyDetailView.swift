@@ -177,7 +177,7 @@ private struct BuoyLocationMapCard: View {
             }
             .allowsHitTesting(false)
         }
-        .frame(height: 180)
+        .frame(height: BuoyDetailChartLayout.metricCardHeight)
         .frame(maxWidth: .infinity, alignment: .leading)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.05), radius: 3, y: 1)

@@ -48,7 +48,7 @@ struct MetricChartCard: View {
                     selectionPlaceholder
                 }
             }
-            .frame(height: 18)
+            .frame(height: BuoyDetailChartLayout.titleRowHeight)
 
             if data.isEmpty {
                 Text("No data available")
@@ -59,8 +59,8 @@ struct MetricChartCard: View {
                 chartContent
             }
         }
-        .padding(.top, 10)
-        .padding(.bottom, 16)
+        .padding(.top, BuoyDetailChartLayout.cardTopPadding)
+        .padding(.bottom, BuoyDetailChartLayout.cardBottomPadding)
         .padding(.leading, 16)
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -74,7 +74,7 @@ struct MetricChartCard: View {
             selectedValueRow
 
             chart
-                .frame(height: 160)
+                .frame(height: BuoyDetailChartLayout.plotHeight)
         }
         .padding(.leading, -8)
     }
@@ -196,7 +196,7 @@ struct MetricChartCard: View {
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
             }
         }
-        .frame(height: 18)
+        .frame(height: BuoyDetailChartLayout.selectedValueRowHeight)
     }
 
     private var selectedPoint: MetricChartDataPoint? {
@@ -365,4 +365,18 @@ enum MetricChartYScale {
             return ChartYAxisSpec.temperature(for: values)
         }
     }
+}
+
+enum BuoyDetailChartLayout {
+    static let titleRowHeight: CGFloat = 18
+    static let selectedValueRowHeight: CGFloat = 18
+    static let plotHeight: CGFloat = 160
+    static let cardTopPadding: CGFloat = 10
+    static let cardBottomPadding: CGFloat = 16
+
+    static let metricCardHeight: CGFloat = cardTopPadding
+        + titleRowHeight
+        + selectedValueRowHeight
+        + plotHeight
+        + cardBottomPadding
 }
