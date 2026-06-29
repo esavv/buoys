@@ -16,6 +16,7 @@ struct CombinedHeightChartCard: View {
     private let seriesData: [HeightChartSeriesPoint]
     private let yAxisSpec: ChartYAxisSpec?
     private let fillBaseline: Double
+    private let analyticsStationID: String?
 
     private var swellSeriesData: [HeightChartSeriesPoint] {
         seriesData.filter { $0.series == .swell }
@@ -27,8 +28,11 @@ struct CombinedHeightChartCard: View {
 
     @State private var selectedDate: Date?
     @State private var selectionLayout = MetricChartSelectionLayout()
+    @State private var didTrackCurrentSelection = false
 
-    init(points: [BuoyHistoryPoint]) {
+    init(points: [BuoyHistoryPoint], stationID: String? = nil) {
+        self.analyticsStationID = stationID
+
         let data: [HeightChartDataPoint] = points.compactMap { point in
             guard let date = point.date else { return nil }
             guard point.swellHeightFt != nil || point.sigWaveHeightFt != nil else { return nil }
@@ -248,6 +252,9 @@ struct CombinedHeightChartCard: View {
         .onPreferenceChange(MetricChartSelectionLayoutKey.self) { layout in
             selectionLayout = layout
         }
+        .onChange(of: selectedDate) {
+            trackSelectionIfNeeded()
+        }
 
         if let yAxisSpec {
             baseChart.chartYScale(domain: yAxisSpec.domain)
@@ -343,6 +350,25 @@ struct CombinedHeightChartCard: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "h a"
         return formatter.string(from: date)
+    }
+
+    private func trackSelectionIfNeeded() {
+        guard selectedDate != nil else {
+            didTrackCurrentSelection = false
+            return
+        }
+
+        guard !didTrackCurrentSelection else { return }
+        didTrackCurrentSelection = true
+
+        var properties: [String: Any] = [
+            "chart_type": "wave_swell_height",
+        ]
+        if let analyticsStationID {
+            properties["station_id"] = analyticsStationID
+        }
+
+        Analytics.track(.chartInteracted, properties: properties)
     }
 }
 

@@ -45,10 +45,25 @@ struct ContentView: View {
         }
         .environment(store)
         .sensoryFeedback(.selection, trigger: selectedTab)
+        .onAppear {
+            Analytics.trackScreen(screenName(for: selectedTab))
+        }
+        .onChange(of: selectedTab) {
+            Analytics.trackScreen(screenName(for: selectedTab))
+        }
         .background {
             Map()
                 .frame(width: 1, height: 1)
                 .opacity(0.01)
+        }
+    }
+
+    private func screenName(for tab: AppTab) -> String {
+        switch tab {
+        case .favorites:
+            return "Favorites"
+        case .map:
+            return "Map"
         }
     }
 }

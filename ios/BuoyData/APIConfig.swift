@@ -30,6 +30,10 @@ enum APIConfig {
     static var stationsURL: URL? {
         URL(string: "\(baseURL)/stations")
     }
+
+    static var analyticsEventsURL: URL? {
+        URL(string: "\(baseURL)/analytics/events")
+    }
 }
 
 struct Station: Codable, Identifiable {
@@ -178,7 +182,8 @@ enum BuoyAPIClient {
             throw URLError(.badURL)
         }
 
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let request = Analytics.request(for: url, source: .iosApp)
+        let (data, _) = try await URLSession.shared.data(for: request)
         return try JSONDecoder().decode(BuoyResponse.self, from: data)
     }
 
@@ -187,7 +192,8 @@ enum BuoyAPIClient {
             throw URLError(.badURL)
         }
 
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let request = Analytics.request(for: url, source: .iosApp)
+        let (data, _) = try await URLSession.shared.data(for: request)
         return try JSONDecoder().decode(BuoyHistoryResponse.self, from: data)
     }
 }

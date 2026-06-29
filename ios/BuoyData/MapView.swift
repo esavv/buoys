@@ -40,8 +40,9 @@ struct MapView: View {
 
     private func fetchStations() {
         guard let url = APIConfig.stationsURL else { return }
+        let request = Analytics.request(for: url, source: .iosApp)
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 print("Stations fetch error: \(error?.localizedDescription ?? "Unknown")")
                 return
@@ -128,6 +129,9 @@ struct StationCard: View {
                 } else {
                     Button {
                         store.add(station.id)
+                        Analytics.track(.favoriteAddedFromMap, properties: [
+                            "station_id": station.id,
+                        ])
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "plus")
@@ -152,8 +156,9 @@ struct StationCard: View {
 
     private func fetchBuoyData() {
         guard let url = APIConfig.buoyURL(for: station.id) else { return }
+        let request = Analytics.request(for: url, source: .iosApp)
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 DispatchQueue.main.async { isLoading = false }
                 return

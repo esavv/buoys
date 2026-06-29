@@ -35,13 +35,36 @@ class FavoritesStore {
     }
 
     func remove(at offsets: IndexSet) {
+        let removedIDs = offsets.compactMap { index in
+            favorites.indices.contains(index) ? favorites[index].id : nil
+        }
+
         favorites.remove(atOffsets: offsets)
         save()
+
+        if !removedIDs.isEmpty {
+            Analytics.track(.favoriteRemoved, properties: [
+                "station_ids": removedIDs,
+                "count": removedIDs.count,
+            ])
+        }
     }
 
     func move(from source: IndexSet, to destination: Int) {
+        let movedIDs = source.compactMap { index in
+            favorites.indices.contains(index) ? favorites[index].id : nil
+        }
+
         favorites.move(fromOffsets: source, toOffset: destination)
         save()
+
+        if !movedIDs.isEmpty {
+            Analytics.track(.favoriteReordered, properties: [
+                "moved_station_ids": movedIDs,
+                "favorite_count": favorites.count,
+                "destination": destination,
+            ])
+        }
     }
 
     func contains(_ buoyId: String) -> Bool {

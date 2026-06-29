@@ -12,18 +12,25 @@ struct MetricChartCard: View {
     private let data: [MetricChartDataPoint]
     private let yAxisSpec: ChartYAxisSpec?
     private let fillBaseline: Double
+    private let analyticsStationID: String?
+    private let analyticsChartType: String
     @State private var selectedDate: Date?
     @State private var selectionLayout = MetricChartSelectionLayout()
+    @State private var didTrackCurrentSelection = false
 
     init(
         title: String,
         unit: String,
         points: [BuoyHistoryPoint],
         value metricValue: KeyPath<BuoyHistoryPoint, Double?>,
-        yScale: MetricChartYScale = .zeroBasedBuffered
+        yScale: MetricChartYScale = .zeroBasedBuffered,
+        stationID: String? = nil,
+        chartType: String? = nil
     ) {
         self.title = title
         self.unit = unit
+        self.analyticsStationID = stationID
+        self.analyticsChartType = chartType ?? title
         let data: [MetricChartDataPoint] = points.compactMap { point in
             guard let date = point.date, let chartValue = point[keyPath: metricValue] else { return nil }
             return MetricChartDataPoint(date: date, value: chartValue)
@@ -175,6 +182,9 @@ struct MetricChartCard: View {
         .onPreferenceChange(MetricChartSelectionLayoutKey.self) { layout in
             selectionLayout = layout
         }
+        .onChange(of: selectedDate) {
+            trackSelectionIfNeeded()
+        }
 
         if let yAxisSpec {
             baseChart.chartYScale(domain: yAxisSpec.domain)
@@ -251,6 +261,25 @@ struct MetricChartCard: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "h a"
         return formatter.string(from: date)
+    }
+
+    private func trackSelectionIfNeeded() {
+        guard selectedDate != nil else {
+            didTrackCurrentSelection = false
+            return
+        }
+
+        guard !didTrackCurrentSelection else { return }
+        didTrackCurrentSelection = true
+
+        var properties: [String: Any] = [
+            "chart_type": analyticsChartType,
+        ]
+        if let analyticsStationID {
+            properties["station_id"] = analyticsStationID
+        }
+
+        Analytics.track(.chartInteracted, properties: properties)
     }
 }
 

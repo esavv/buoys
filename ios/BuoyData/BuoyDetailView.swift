@@ -55,6 +55,11 @@ struct BuoyDetailView: View {
         .background(Color("FavoriteScreenBackground").ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
+        .onAppear {
+            Analytics.trackScreen("Buoy Detail", properties: [
+                "station_id": buoy.id,
+            ])
+        }
         .task(id: buoy.id) {
             await loadData()
         }
@@ -101,16 +106,18 @@ struct BuoyDetailView: View {
                 .font(.headline)
                 .padding(.leading, 16)
 
-            CombinedHeightChartCard(points: historyPoints)
+            CombinedHeightChartCard(points: historyPoints, stationID: buoy.id)
 
-            SwellPeriodDirectionChartCard(points: historyPoints)
+            SwellPeriodDirectionChartCard(points: historyPoints, stationID: buoy.id)
 
             MetricChartCard(
                 title: "Water Temperature",
                 unit: "°F",
                 points: historyPoints,
                 value: \.waterTempF,
-                yScale: .temperature
+                yScale: .temperature,
+                stationID: buoy.id,
+                chartType: "water_temperature"
             )
 
             if let buoyCoordinate {

@@ -14,11 +14,15 @@ struct SwellPeriodDirectionChartCard: View {
     private let arrowPoints: [SwellPeriodDirectionPoint]
     private let yAxisSpec: ChartYAxisSpec?
     private let fillBaseline: Double
+    private let analyticsStationID: String?
 
     @State private var selectedDate: Date?
     @State private var selectionLayout = MetricChartSelectionLayout()
+    @State private var didTrackCurrentSelection = false
 
-    init(points: [BuoyHistoryPoint]) {
+    init(points: [BuoyHistoryPoint], stationID: String? = nil) {
+        self.analyticsStationID = stationID
+
         let data: [SwellPeriodDirectionPoint] = points.compactMap { point in
             guard let date = point.date, let period = point.swellPeriodS else { return nil }
 
@@ -205,6 +209,9 @@ struct SwellPeriodDirectionChartCard: View {
         .onPreferenceChange(MetricChartSelectionLayoutKey.self) { layout in
             selectionLayout = layout
         }
+        .onChange(of: selectedDate) {
+            trackSelectionIfNeeded()
+        }
 
         if let yAxisSpec {
             baseChart.chartYScale(domain: yAxisSpec.domain)
@@ -318,6 +325,25 @@ struct SwellPeriodDirectionChartCard: View {
         }
 
         return sampledPoints
+    }
+
+    private func trackSelectionIfNeeded() {
+        guard selectedDate != nil else {
+            didTrackCurrentSelection = false
+            return
+        }
+
+        guard !didTrackCurrentSelection else { return }
+        didTrackCurrentSelection = true
+
+        var properties: [String: Any] = [
+            "chart_type": "swell_period_direction",
+        ]
+        if let analyticsStationID {
+            properties["station_id"] = analyticsStationID
+        }
+
+        Analytics.track(.chartInteracted, properties: properties)
     }
 }
 

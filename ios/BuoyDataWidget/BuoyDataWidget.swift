@@ -61,7 +61,8 @@ struct Provider: TimelineProvider {
         }
 
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let request = Analytics.request(for: url, source: .iosWidget)
+            let (data, _) = try await URLSession.shared.data(for: request)
             let decoder = JSONDecoder()
             let buoyResponse = try decoder.decode(BuoyResponse.self, from: data)
             

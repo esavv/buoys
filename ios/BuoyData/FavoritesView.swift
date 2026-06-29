@@ -111,6 +111,7 @@ struct FavoritesView: View {
 
     private var addButton: some View {
         Button {
+            Analytics.track(.addBuoyOpened)
             withAnimation(addBuoyComposerAnimation) {
                 showingAddSheet = true
             }
@@ -204,8 +205,9 @@ struct FavoriteBuoyRow: View {
 
     private func fetchData() {
         guard let url = APIConfig.buoyURL(for: buoy.id) else { return }
+        let request = Analytics.request(for: url, source: .iosApp)
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 DispatchQueue.main.async { isLoading = false }
                 return
@@ -438,8 +440,9 @@ struct AddBuoySheet: View {
             showError("Invalid buoy ID.")
             return
         }
+        let request = Analytics.request(for: url, source: .iosApp)
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 DispatchQueue.main.async {
                     showError("Could not reach the server. Try again.")
@@ -452,6 +455,9 @@ struct AddBuoySheet: View {
                 DispatchQueue.main.async {
                     if decoded.status == "success" {
                         store.add(trimmedId)
+                        Analytics.track(.favoriteAddedByID, properties: [
+                            "station_id": trimmedId,
+                        ])
                         onDismiss()
                     } else {
                         showError("Buoy not found!")
