@@ -7,7 +7,7 @@
 1. Install and open [Buoys](https://apps.apple.com/us/app/buoys-live-ocean-data/id6756240428) and add at least one buoy to Favorites (by [station ID](https://www.ndbc.noaa.gov/activestations.xml) or from the Map). Put your preferred widget station first in the Favorites list.
 2. To customize your lock screen, either long press the lock screen and tap "Customize", or go to Settings > Wallpaper > Customize
 3. Tap "Add Widgets" and search for **Buoys**
-4. Select the circular widget — it shows data for your first favorite
+4. Select the widget and you're done. The widget displays data for the first buoy in your Favorites list
 
 ## Support
 
