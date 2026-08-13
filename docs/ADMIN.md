@@ -1,4 +1,16 @@
-# Deployment process
+## Resources
+
+* [NOAA NDBC Web Data Guide](https://www.ndbc.noaa.gov/docs/ndbc_web_data_guide.pdf)
+* [Active stations list](https://www.ndbc.noaa.gov/activestations.xml)
+* [NDBC realtime data directory](https://www.ndbc.noaa.gov/data/realtime2/)
+
+## Building from source
+
+When building & running the lock screen widget from Xcode, if you run into build errors, ensure the following in Product > Scheme > Edit Scheme (for BuoyDataWidgetExtension, not BuoyData):
+* Add this Environment Variable: key: `_XCWidgetKind`, value: `BuoyDataWidget`
+* In WidgetKit Environment ensure attribute Family is set to `accessoryRectangular` (or whichever lock screen accessory family you're using)
+
+## Deployment process
 
 1. In Xcode: Bump the version numbers. In the filetree, click on the root directory to view the project, then find "Targets" on the left. In **both** BuoyData and BuoyDataWidgetExtension targets, increment the version number in Identity. No code changes required to change version number.
 2. Set the destination to "Any iOS Device (arm64)" in the device dropdown at the top-center of Xcode, or in Product > Destination. You can't archive while targeting a simulator or a specific device
