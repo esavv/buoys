@@ -358,16 +358,16 @@ struct AddBuoySheet: View {
                     Button {
                         submitIfPossible()
                     } label: {
-                        if isValidating {
-                            ProgressView()
-                                .tint(.white)
-                                .frame(width: 34, height: 18)
-                        } else {
-                            Text("Add")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .frame(width: 34)
-                        }
+                        Text("Add")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .opacity(isValidating ? 0 : 1)
+                            .overlay {
+                                if isValidating {
+                                    ProgressView()
+                                        .tint(.white)
+                                }
+                            }
                     }
                     .padding(.vertical, 9)
                     .padding(.horizontal, 14)
