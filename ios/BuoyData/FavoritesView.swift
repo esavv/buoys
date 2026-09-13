@@ -430,7 +430,7 @@ struct AddBuoySheet: View {
         isBuoyIdFocused = true
 
         if store.contains(trimmedId) {
-            showError("Buoy already in favorites!")
+            showError("Buoy already added!")
             return
         }
 
