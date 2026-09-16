@@ -100,6 +100,11 @@ struct SimpleEntry: TimelineEntry {
 
 struct BuoyDataWidgetEntryView : View {
     var entry: Provider.Entry
+
+    private enum FontSize {
+        static let reading: CGFloat = 14
+        static let unit: CGFloat = 9
+    }
     
     // Formats "8:40 pm EST" to "8:40pm"
     private func formatTime(_ timeString: String) -> String {
@@ -146,27 +151,27 @@ struct BuoyDataWidgetEntryView : View {
                 Grid(horizontalSpacing: 4, verticalSpacing: 1) {
                     GridRow {
                         (
-                            Text(formatValue(entry.waveHeight)).font(.system(size: 14))
-                            + Text(" ft").font(.system(size: 9))
+                            Text(formatValue(entry.waveHeight)).font(.system(size: FontSize.reading))
+                            + Text(" ft").font(.system(size: FontSize.unit))
                         )
                         .minimumScaleFactor(0.1)
                         .lineLimit(1)
                         (
-                            Text(formatValue(entry.swellPeriod)).font(.system(size: 14))
-                            + Text(" s").font(.system(size: 9))
+                            Text(formatValue(entry.swellPeriod)).font(.system(size: FontSize.reading))
+                            + Text(" s").font(.system(size: FontSize.unit))
                         )
                         .minimumScaleFactor(0.1)
                         .lineLimit(1)
                     }
                     GridRow {
                         (
-                            Text(formatValue(entry.swellHeight)).font(.system(size: 14))
-                            + Text(" ft").font(.system(size: 9))
+                            Text(formatValue(entry.swellHeight)).font(.system(size: FontSize.reading))
+                            + Text(" ft").font(.system(size: FontSize.unit))
                         )
                         .minimumScaleFactor(0.1)
                         .lineLimit(1)
                         (
-                            Text(entry.swellDirection).font(.system(size: 14))
+                            Text(entry.swellDirection).font(.system(size: FontSize.reading))
                         )
                         .minimumScaleFactor(0.1)
                         .lineLimit(1)
