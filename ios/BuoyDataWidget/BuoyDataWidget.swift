@@ -145,15 +145,31 @@ struct BuoyDataWidgetEntryView : View {
             } else {
                 Grid(horizontalSpacing: 4, verticalSpacing: 1) {
                     GridRow {
-                        Text(formatValue(entry.waveHeight)).font(.system(size: 14)) + Text(" ").font(.system(size: 5)) + Text("ft").font(.system(size: 7))
-                        Text(formatValue(entry.swellPeriod)).font(.system(size: 14)) + Text(" ").font(.system(size: 5)) + Text("s").font(.system(size: 7))
+                        (
+                            Text(formatValue(entry.waveHeight)).font(.system(size: 14))
+                            + Text(" ft").font(.system(size: 9))
+                        )
+                        .minimumScaleFactor(0.1)
+                        .lineLimit(1)
+                        (
+                            Text(formatValue(entry.swellPeriod)).font(.system(size: 14))
+                            + Text(" s").font(.system(size: 9))
+                        )
+                        .minimumScaleFactor(0.1)
+                        .lineLimit(1)
                     }
                     GridRow {
-                        Text(formatValue(entry.swellHeight)).font(.system(size: 14)) + Text(" ").font(.system(size: 5)) + Text("ft").font(.system(size: 7))
-                        Text(entry.swellDirection)
-                            .font(.system(size: 14))
-                            .minimumScaleFactor(0.1)
-                            .lineLimit(1)
+                        (
+                            Text(formatValue(entry.swellHeight)).font(.system(size: 14))
+                            + Text(" ft").font(.system(size: 9))
+                        )
+                        .minimumScaleFactor(0.1)
+                        .lineLimit(1)
+                        (
+                            Text(entry.swellDirection).font(.system(size: 14))
+                        )
+                        .minimumScaleFactor(0.1)
+                        .lineLimit(1)
                     }
                 }
                 Text(formatTime(entry.lastUpdated))
