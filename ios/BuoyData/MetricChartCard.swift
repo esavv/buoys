@@ -196,11 +196,10 @@ struct MetricChartCard: View {
     private var selectedValueRow: some View {
         GeometryReader { geometry in
             if let selectedPoint, let selectedX = selectionLayout.selectedX {
-                selectedValueCallout(for: selectedPoint)
-                    .position(
-                        x: selectedX,
-                        y: geometry.size.height / 2
-                    )
+                MetricChartCalloutLayout(selectedX: selectedX) {
+                    selectedValueCallout(for: selectedPoint)
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height)
             } else {
                 selectionPlaceholder
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
@@ -287,6 +286,30 @@ private struct MetricChartDataPoint: Identifiable {
     let id = UUID()
     let date: Date
     let value: Double
+}
+
+struct MetricChartCalloutLayout: Layout {
+    let selectedX: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let size = subviews.first?.sizeThatFits(proposal) ?? .zero
+        return CGSize(width: proposal.width ?? size.width, height: proposal.height ?? size.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard let callout = subviews.first else { return }
+
+        let calloutProposal = ProposedViewSize(width: bounds.width, height: bounds.height)
+        let calloutSize = callout.sizeThatFits(calloutProposal)
+        let halfWidth = min(calloutSize.width, bounds.width) / 2
+        let centerX = min(max(selectedX, halfWidth), bounds.width - halfWidth)
+
+        callout.place(
+            at: CGPoint(x: bounds.minX + centerX, y: bounds.midY),
+            anchor: .center,
+            proposal: calloutProposal
+        )
+    }
 }
 
 struct MetricChartSelectionLayout: Equatable {

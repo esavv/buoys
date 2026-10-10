@@ -223,8 +223,10 @@ struct SwellPeriodDirectionChartCard: View {
     private var selectedValueRow: some View {
         GeometryReader { geometry in
             if let selectedPoint, let selectedX = selectionLayout.selectedX {
-                selectedValueCallout(for: selectedPoint)
-                    .position(x: selectedX, y: geometry.size.height / 2)
+                MetricChartCalloutLayout(selectedX: selectedX) {
+                    selectedValueCallout(for: selectedPoint)
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height)
             } else {
                 selectionPlaceholder
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
