@@ -31,12 +31,14 @@ struct BuoyDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                headerCard
+                if isLoading && currentData == nil {
+                    BuoyReadingsSkeletonCard(stationID: buoy.id, cornerRadius: 16, spacing: 12)
+                } else {
+                    headerCard
+                }
 
                 if isLoading && historyPoints.isEmpty {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 24)
+                    chartsSkeletonSection
                 } else {
                     chartsSection
                 }
@@ -84,9 +86,6 @@ struct BuoyDetailView: View {
 
             if let currentData, currentData.status == "success" {
                 FavoriteBuoyReadings(data: currentData)
-            } else if isLoading {
-                ProgressView()
-                    .padding(.vertical, 4)
             } else {
                 Text("Current readings unavailable")
                     .font(.subheadline)
@@ -98,6 +97,54 @@ struct BuoyDetailView: View {
         .background(Color("FavoriteCardSurface"))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
+    }
+
+    private var chartsSkeletonSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Last 24 Hours")
+                .font(.headline)
+                .foregroundStyle(.clear)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color("FavoriteCardSurface"))
+                }
+                .modifier(SkeletonShimmer())
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
+                .accessibilityLabel("Loading history")
+
+            LoadingSkeletonCard(
+                height: BuoyDetailChartLayout.metricCardHeight + 22,
+                accessibilityLabel: "Loading wave and swell height chart"
+            )
+            LoadingSkeletonCard(
+                height: BuoyDetailChartLayout.metricCardHeight,
+                accessibilityLabel: "Loading swell period and direction chart"
+            )
+            LoadingSkeletonCard(
+                height: BuoyDetailChartLayout.metricCardHeight,
+                accessibilityLabel: "Loading water temperature chart"
+            )
+
+            if let buoyCoordinate {
+                locationMapCard(coordinate: buoyCoordinate)
+            } else if currentData == nil {
+                LoadingSkeletonCard(
+                    height: BuoyDetailChartLayout.metricCardHeight,
+                    accessibilityLabel: "Loading buoy location map"
+                )
+            }
+        }
+    }
+
+    private func locationMapCard(coordinate: CLLocationCoordinate2D) -> some View {
+        BuoyLocationMapCard(
+            coordinate: coordinate,
+            title: "Station \(buoy.id)",
+            onTap: {
+                onOpenMap?(buoy.id)
+            }
+        )
     }
 
     private var chartsSection: some View {
@@ -121,13 +168,7 @@ struct BuoyDetailView: View {
             )
 
             if let buoyCoordinate {
-                BuoyLocationMapCard(
-                    coordinate: buoyCoordinate,
-                    title: "Station \(buoy.id)",
-                    onTap: {
-                        onOpenMap?(buoy.id)
-                    }
-                )
+                locationMapCard(coordinate: buoyCoordinate)
             }
         }
     }

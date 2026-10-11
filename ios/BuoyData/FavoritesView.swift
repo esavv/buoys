@@ -162,6 +162,19 @@ struct FavoriteBuoyRow: View {
     }
 
     var body: some View {
+        Group {
+            if isLoading && buoyData == nil {
+                BuoyReadingsSkeletonCard(stationID: buoy.id)
+            } else {
+                loadedCard
+            }
+        }
+        .onAppear {
+            fetchData()
+        }
+    }
+
+    private var loadedCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -183,10 +196,7 @@ struct FavoriteBuoyRow: View {
                 }
             }
 
-            if isLoading {
-                ProgressView()
-                    .padding(.vertical, 4)
-            } else if let data = buoyData, data.status == "success" {
+            if let data = buoyData, data.status == "success" {
                 FavoriteBuoyReadings(data: data, isEditing: isEditing)
             } else {
                 Text("No data available")
@@ -198,13 +208,13 @@ struct FavoriteBuoyRow: View {
         .background(Color("FavoriteCardSurface"))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
-        .onAppear {
-            fetchData()
-        }
     }
 
     private func fetchData() {
-        guard let url = APIConfig.buoyURL(for: buoy.id) else { return }
+        guard let url = APIConfig.buoyURL(for: buoy.id) else {
+            isLoading = false
+            return
+        }
         let request = Analytics.request(for: url, source: .iosApp)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
